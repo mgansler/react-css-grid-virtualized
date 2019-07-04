@@ -2,9 +2,14 @@ import * as React from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { debounce, range } from "lodash"
 
-interface GridProps {
-  items: any[]
-  Item: React.FC<any>
+export interface GridPosition {
+  gridRowStart: number
+  gridColumnStart: number
+}
+
+interface GridProps<T> {
+  items: T[]
+  Item: React.FC<T & GridPosition>
   minItemWidth?: number
   minItemHeight?: number
   gridGap?: number
@@ -16,7 +21,7 @@ interface Dimensions {
   columns: number
 }
 
-export const Grid: React.FC<GridProps> = ({ items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0 }) => {
+export const Grid = <T extends {}>({ items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0 }: GridProps<T>) => {
   const gridRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState<Dimensions>({ rows: items.length, columns: 1 })
   const [visibleItems, setVisibleItems] = useState<number[]>([])
@@ -69,10 +74,8 @@ export const Grid: React.FC<GridProps> = ({ items, Item, minItemWidth = 400, min
           <Item
             {...item}
             key={index}
-            style={{
-              gridColumnStart: 1 + index % dimensions.columns,
-              gridRowStart: 1 + Math.floor(index / dimensions.columns),
-            }}
+            gridColumnStart={1 + index % dimensions.columns}
+            gridRowStart={1 + Math.floor(index / dimensions.columns)}
           />
           : null)}
       </ div>

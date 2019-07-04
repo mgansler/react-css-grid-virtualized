@@ -15,7 +15,7 @@ for (let i = 0; i < ITEMS_COUNT; i++) {
 
 ReactDOM.render(
   <div className={"container"}>
-    <Grid
+    <Grid<ItemProps>
       Item={Item}
       items={items}
       padding={5}
