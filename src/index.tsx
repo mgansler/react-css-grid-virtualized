@@ -2,26 +2,11 @@ import React from "react"
 import ReactDOM from "react-dom"
 import "./index.css"
 import * as serviceWorker from "./serviceWorker"
-import { Grid } from "./Grid"
-import { Item, ItemProps } from "./Item"
+import { Controls } from "./Controls"
 
-const ITEMS_COUNT = 100
-
-const items: ItemProps[] = []
-
-for (let i = 0; i < ITEMS_COUNT; i++) {
-  items.push({ width: Math.floor(Math.random() * 600 + 200), height: Math.floor(Math.random() * 400 + 200) })
-}
 
 ReactDOM.render(
-  <div className={"container"}>
-    <Grid<ItemProps>
-      Item={Item}
-      items={items}
-      padding={5}
-      gridGap={10}
-    />
-  </div>,
+  <Controls/>,
   document.getElementById("root"),
 )
 

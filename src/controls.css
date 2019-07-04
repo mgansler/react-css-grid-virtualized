@@ -1,0 +1,10 @@
+.controls {
+    background-color: beige;
+}
+
+.square:before {
+    content: "";
+    grid-row-start: 1;
+    grid-column-start: 1;
+    padding-bottom: 100%;
+}

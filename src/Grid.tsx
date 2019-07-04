@@ -8,11 +8,12 @@ export interface GridPosition {
 }
 
 interface GridProps<T> {
-  items: T[]
-  Item: React.FC<T & GridPosition>
-  minItemWidth?: number
-  minItemHeight?: number
+  className?: string
   gridGap?: number
+  Item: React.FC<T & GridPosition>
+  items: T[]
+  minItemHeight?: number
+  minItemWidth?: number
   padding?: number
 }
 
@@ -21,34 +22,40 @@ interface Dimensions {
   columns: number
 }
 
-export const Grid = <T extends {}>({ items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0 }: GridProps<T>) => {
+export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0 }: GridProps<T>) => {
   const gridRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState<Dimensions>({ rows: items.length, columns: 1 })
   const [visibleItems, setVisibleItems] = useState<number[]>([])
 
   const handleResize = useCallback(() => {
     if (gridRef.current !== null && items.length > 0) {
-      const columnCount = Math.floor(gridRef.current.clientWidth / minItemWidth)
+      const columnCount = Math.floor((gridRef.current.clientWidth - 2 * padding + gridGap) / (minItemWidth + gridGap))
       setDimensions({
         rows: Math.ceil(items.length / columnCount),
         columns: columnCount,
       })
     }
-  }, [items.length, minItemWidth])
+  }, [items.length, minItemWidth, padding, gridGap])
 
   const handleScroll = useCallback(() => {
     if (gridRef.current !== null && items.length > 0) {
-      const { parentElement, scrollHeight, clientWidth } = gridRef.current
-      const columnCount = Math.floor(clientWidth / minItemWidth)
+      const { parentElement, scrollHeight } = gridRef.current
 
-      const firstRow = Math.floor(parentElement!.scrollTop / (scrollHeight / dimensions.rows))
-      const lastRow = Math.floor((parentElement!.scrollTop - padding + parentElement!.clientHeight) / (scrollHeight / dimensions.rows))
+      const rowHeight = ((scrollHeight - 2 * padding + gridGap) / dimensions.rows)
 
-      const newVisibleItems = range(firstRow * columnCount, Math.min(lastRow * columnCount + columnCount, items.length))
+      let firstRow = Math.floor((parentElement!.scrollTop - padding + gridGap) / rowHeight)
+      const lastRow = Math.floor((parentElement!.scrollTop - padding + parentElement!.clientHeight) / rowHeight)
+
+      if (firstRow === lastRow && firstRow > 0) {
+        firstRow--
+      }
+
+      const newVisibleItems = range(firstRow * dimensions.columns, Math.min(lastRow * dimensions.columns + dimensions.columns, items.length))
+
       setVisibleItems(newVisibleItems)
     }
-  }, [dimensions.rows, items.length, minItemWidth, padding])
-
+  }, [dimensions.rows, dimensions.columns, items.length, padding, gridGap])
+ 
   useEffect(() => {
     window.addEventListener("resize", handleResize)
     handleResize()
@@ -60,9 +67,11 @@ export const Grid = <T extends {}>({ items, Item, minItemWidth = 400, minItemHei
   }, [items, minItemWidth, gridGap, padding, handleScroll, handleResize])
 
   return (
-    <div style={{ overflowX: "scroll", maxHeight: "100%" }} onScroll={debounce(handleScroll, 50)}>
+    <div style={{ overflowY: items.length > 0 ? "scroll" : "hidden", maxHeight: "100%" }}
+         onScroll={debounce(handleScroll, 50)}>
       <div
         ref={gridRef}
+        className={className}
         style={{
           display: "grid",
           gridTemplateRows: `repeat(${dimensions.rows}, minmax(${minItemHeight}px, 1fr)`,
