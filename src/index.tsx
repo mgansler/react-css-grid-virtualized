@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import "./index.css"
 import * as serviceWorker from "./serviceWorker"
 import { Grid } from "./Grid"
-import { Item, ItemProps } from "./Grid/Item"
+import { Item, ItemProps } from "./Item"
 
 const ITEMS_COUNT = 100
 
