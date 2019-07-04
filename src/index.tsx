@@ -5,7 +5,7 @@ import * as serviceWorker from "./serviceWorker"
 import { Grid } from "./Grid"
 import { Item, ItemProps } from "./Grid/Item"
 
-const ITEMS_COUNT = 20
+const ITEMS_COUNT = 100
 
 const items: ItemProps[] = []
 
@@ -15,7 +15,12 @@ for (let i = 0; i < ITEMS_COUNT; i++) {
 
 ReactDOM.render(
   <div className={"container"}>
-    <Grid Item={Item} items={items}/>
+    <Grid
+      Item={Item}
+      items={items}
+      padding={5}
+      gridGap={10}
+    />
   </div>,
   document.getElementById("root"),
 )
