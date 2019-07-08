@@ -55,7 +55,7 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
       setVisibleItems(newVisibleItems)
     }
   }, [dimensions.rows, dimensions.columns, items.length, padding, gridGap])
- 
+
   useEffect(() => {
     window.addEventListener("resize", handleResize)
     handleResize()
@@ -79,14 +79,12 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
           gap: `${gridGap}px ${gridGap}px`,
           padding,
         }}>
-        {items.map((item, index) => visibleItems.includes(index) ?
-          <Item
-            {...item}
-            key={index}
-            gridColumnStart={1 + index % dimensions.columns}
-            gridRowStart={1 + Math.floor(index / dimensions.columns)}
-          />
-          : null)}
+        {visibleItems.map(id => <Item
+          {...items[id]}
+          key={id}
+          gridColumnStart={1 + id % dimensions.columns}
+          gridRowStart={1 + Math.floor(id / dimensions.columns)}
+        />)}
       </ div>
     </ div>
   )
