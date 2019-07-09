@@ -1,44 +1,163 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Lazy Kittens
 
-## Available Scripts
+## What this is about
 
-In the project directory, you can run:
+When dealing with hugh amounts of data, displaying all of it can hinder rendering performance of the browser.
+[Googles recommends](https://developers.google.com/web/tools/lighthouse/audits/dom-size) to limit the number of DOM elements to 1500 and to have no more than 60 child nodes for any given element.
+It is important to keep in mind, that a single entry in a list may result in multiple DOM elements.
+To mitigate this issue it is common (best?) practice to virtualize the DOM, meaning to only render the items actually visible to the user.
+Given the example of 1000 cute little kittens, only 20 or so are visible on the screen at any given time.
+So why render the 980 others?
 
-### `npm start`
+This is referred to as [virtualization](https://reactjs.org/docs/optimizing-performance.html#virtualize-long-lists) 
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Motivation
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+Most virtualization libraries I am aware of [[1](https://github.com/bvaughn/react-virtualized), [2](https://github.com/bvaughn/react-window)] work in the same way:
 
-### `npm test`
+1. Ask the developer for the dimensions of the items
+2. Calculate dimension of the container
+3. Set the `position` attribute of the items to `absolute`
+4. Calculate `top` and `left` of each item
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Every time the browser window size changes, these values need to be calculated again.
 
-### `npm run build`
+## CSS Grid
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+What if the browser could help with calculating all these numbers?
+Well, it actually can, with [CSS Grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout).
+It has a few advantages to the common approach above:
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+### Fraction Unit
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+The fraction unit allows for same (relative) width/height items in the grid.
+Given the number of rows/columns and a single rendered item, the total dimension of the grid is calculated automatically.
 
-### `npm run eject`
+### Grid Slots
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+With CSS Grid, there is no need to calculate the `left`/`top` values but the `row` and `column` of each item.
+These values (`row`/`column`) are independent of paddings, gaps and even dynamic row heights / column widths.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Demo
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+The Demo will be implemented as a Functional Component utilizing [React Hooks](https://reactjs.org/docs/hooks-intro.html).
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Our input (to be changed by the user) are the following properties:
+```typescript jsx
+/**
+* items: array - randomly generated data.
+* gridGap: number - the space between the items
+* padding: number - the space from the edge of the grid to the items
+* square: boolean - whether the grid items are forced to be square
+*/
+```
 
-## Learn More
+Additionally, the developer can provide the following properties during build time:
+```typescript jsx
+/**
+* Item: React Component - used to render every entry in the list
+* minItemWidth: number - the minimum width of each item
+* minItemHeight: number - the minimum height of each item
+*/
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+We want our component to return something like this (first 20 items):
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```html
+<div style="overflow-y: hidden; max-height: 100%">
+  <div style="display: grid; grid-template-columns: repeat(4, 400px); grid-template-rows: repeat(10, 400px)">
+    <div style="grid-column-start: 1; grid-row-start: 1">Item 1</div>
+    <div style="grid-column-start: 2; grid-row-start: 1">Item 2</div>
+    ...
+    <div style="grid-column-start: 4; grid-row-start: 5">Item 20</div>
+  </div>
+</div>
+```
+
+And after scrolling down to the bottom (last 20 items):
+
+```html
+<div style="overflow-y: hidden; max-height: 100%">
+  <div style="display: grid; grid-template-columns: repeat(4, 400px); grid-template-rows: repeat(10, 400px)">
+    <div style="grid-column-start: 1; grid-row-start: 6">Item 21</div>
+    <div style="grid-column-start: 2; grid-row-start: 6">Item 22</div>
+    ...
+    <div style="grid-column-start: 4; grid-row-start: 10">Item 40</div>
+  </div>
+</div>
+```
+
+### Hooks
+
+Our components needs a few Hooks to properly function:
+
+#### `useRef`
+
+explain hook
+
+A reference to the `<div />` Element that is our Grid.
+We need this for access to the dimensions and scroll position of the container wrapping the grid.
+
+```typescript jsx
+  const gridRef = useRef<HTMLDivElement>(null)
+```
+
+#### `useState`
+
+explain hook
+
+We need to store the `dimensions`, meaning the number of `rows` and `columns` in our grid
+as well as `visibleItems`, that stores the indices of the currently visible items.
+
+```typescript jsx
+  // Do not render any items on the first iteration
+  const [dimensions, setDimensions] = useState<Dimensions>({ rows: 0, columns: 0 })
+  const [visibleItems, setVisibleItems] = useState<number[]>([])
+```
+
+#### `useCallback`
+
+explain hook
+
+1. `handleScroll`:
+  This method is called `onScroll` and updates the `visibleItems` array.
+
+    ```typescript jsx
+    ```
+
+2. `handleResize`:
+  This callback is responsible for updating the dimensions.
+  It is called whenever the browser window size changes.
+
+    ```typescript jsx
+    ```
+
+
+#### `useEffect`
+
+An effect is something that is called *after* a component has been rendered.
+In this case it registers the `handleResize` callback to the Window `resize` event.
+It also calls the `handleResize` (which than calls `handleScroll`) method after the initial render so that the correct amount of items is rendered.
+
+```typescript jsx
+useEffect(() => {
+  window.addEventListener("resize", handleResize)
+  handleResize()
+  
+  return () => {
+    window.removeEventListener("resize", handleResize)
+  }
+}, [items, minItemWidth, gridGap, padding, handleScroll, handleResize])
+```
+
+### Return value 
+
+```typescript jsx
+
+```
+
+### What's missing
+
+- preloading
+- limit to 1000 (Chrome) / 10000 (Firefox) rows
+
