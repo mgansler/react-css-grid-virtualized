@@ -22,6 +22,28 @@ interface Dimensions {
   columns: number
 }
 
+interface ScrollContainerProps {
+  itemCount: number
+  onScroll: () => void
+}
+
+const ScrollContainer: React.FC<ScrollContainerProps> = ({ children, itemCount, onScroll }) => <div
+  style={{ overflowY: itemCount > 0 ? "scroll" : "hidden", height: "100%" }}
+  onScroll={debounce(onScroll, 50)}>{children}</div>
+
+enum RenderState {
+  Initial,
+  SingleRow,
+  Continuous,
+}
+
+interface GridState {
+  visibleItems: number[]
+  rows: number
+  columns: number
+  renderState: RenderState
+}
+
 // Compares the first and last element of the given arrays
 const areVisibleItemsEqual = (lastVisibleItems: number[], newVisibleItems: number[]) => {
   if (lastVisibleItems.length !== newVisibleItems.length) {
@@ -37,34 +59,47 @@ const areVisibleItemsEqual = (lastVisibleItems: number[], newVisibleItems: numbe
   return lastVisibleItems[0] === newVisibleItems[0] && lastVisibleItems[length - 1] === newVisibleItems[length - 1]
 }
 
-interface ScrollContainerProps {
-  itemCount: number
-  onScroll: () => void
-}
+const isUpdateRequired = (oldGridState: GridState, newGridState: GridState): boolean => {
+  const { rows: currentRows, columns: currentColumns, visibleItems: currentVisibleItems } = oldGridState
+  const { rows: newRows, columns: newColumns, visibleItems: newVisibleItems } = newGridState
 
-const ScrollContainer: React.FC<ScrollContainerProps> = ({ children, itemCount, onScroll }) => <div
-  style={{ overflowY: itemCount > 0 ? "scroll" : "hidden", maxHeight: "100%" }}
-  onScroll={debounce(onScroll, 50)}>{children}</div>
-
-interface GridState {
-  visibleItems: number[]
-  rows: number
-  columns: number
+  return currentColumns !== newColumns || currentRows !== newRows || !areVisibleItemsEqual(currentVisibleItems, newVisibleItems)
 }
 
 export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0 }: GridProps<T>) => {
   const gridRef = useRef<HTMLDivElement>(null)
 
+  // TODO: useReducer
   // Do not render any items on the first iteration
-  const [dimensions, setDimensions] = useState<Dimensions>({ rows: 0, columns: 0 })
-  const [visibleItems, setVisibleItems] = useState<number[]>([])
+  const [gridState, setGridState] = useState<GridState>({
+    rows: 0,
+    columns: 0,
+    visibleItems: [],
+    renderState: RenderState.Initial,
+  })
 
   const updateVisibleItems = useCallback(() => {
     if (gridRef.current !== null) {
+      // CSS Grid auto-fit puts as many items in a single row as long as they can be wider than the minimal item width.
+      // It uses the exact value of the grid to calculate that. (gridRef.current.clientWidth is rounded)
+      // We add an additional virtual gap to the width so we can divide by (minItemWidth + gridGap).
+      const columnCount = Math.floor((gridRef.current.getBoundingClientRect().width + gridGap - 2 * padding) / (minItemWidth + gridGap))
+      const rowCount = Math.ceil(items.length / columnCount)
+
+      if (gridState.renderState === RenderState.Initial) {
+        setGridState({
+          rows: rowCount,
+          columns: columnCount,
+          visibleItems: range(0, Math.min(columnCount, items.length)),
+          renderState: RenderState.SingleRow,
+        })
+        return
+      }
+
       const { parentElement, scrollHeight } = gridRef.current
 
       // Our row height is the height of an item plus a grid gap
-      const rowHeightWithGap = ((scrollHeight + gridGap - 2 * padding) / dimensions.rows)
+      const rowHeightWithGap = ((scrollHeight + gridGap - 2 * padding) / rowCount)
 
       // For the first visible row we are interested when the lower boundary of an item enters/leaves the screen.
       let firstVisibleRow = Math.max(Math.floor((parentElement!.scrollTop + gridGap - padding) / rowHeightWithGap), 0)
@@ -79,40 +114,36 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
       }
 
       const newVisibleItems = range(
-        firstVisibleRow * dimensions.columns,
-        Math.min(lastVisibleRow * dimensions.columns + dimensions.columns, items.length),
+        firstVisibleRow * columnCount,
+        Math.min(lastVisibleRow * columnCount + columnCount, items.length),
       )
 
       // Avoid re-rendering when items do not change
-      if (!areVisibleItemsEqual(visibleItems, newVisibleItems)) {
-        setVisibleItems(newVisibleItems)
+      const newGridState: GridState = {
+        rows: rowCount,
+        columns: columnCount,
+        visibleItems: newVisibleItems,
+        renderState: RenderState.Continuous,
+      }
+      if (isUpdateRequired(gridState, newGridState)) {
+        setGridState(newGridState)
       }
     }
-  }, [dimensions.rows, dimensions.columns, items.length, padding, gridGap, visibleItems])
-
-  const updateDimensions = useCallback(() => {
-    if (gridRef.current !== null) {
-      // CSS Grid auto-fit puts as many items in a single row as long as they can be wider than the minimal item width.
-      // It uses the exact value of the grid to calculate that. (gridRef.current.clientWidth is rounded)
-      // We add an additional virtual gap to the width so we can divide by (minItemWidth + gridGap).
-      const columnCount = Math.floor((gridRef.current.getBoundingClientRect().width + gridGap - 2 * padding) / (minItemWidth + gridGap))
-
-      setDimensions({
-        rows: Math.ceil(items.length / columnCount),
-        columns: columnCount,
-      })
-    }
-    updateVisibleItems()
-  }, [items.length, minItemWidth, padding, gridGap, updateVisibleItems])
+  }, [gridState, items.length, padding, gridGap, minItemWidth])
 
   useEffect(() => {
-    window.addEventListener("resize", updateDimensions)
-    updateDimensions()
+    console.log("useEffect")
+    window.addEventListener("resize", updateVisibleItems)
+    if (gridState.renderState < RenderState.Continuous) {
+      updateVisibleItems()
+    }
 
     return () => {
-      window.removeEventListener("resize", updateDimensions)
+      window.removeEventListener("resize", updateVisibleItems)
     }
-  }, [items.length, minItemWidth, gridGap, padding, updateVisibleItems, updateDimensions])
+  }, [gridState.renderState, updateVisibleItems])
+
+  console.log("render", gridState)
 
   return (
     <ScrollContainer itemCount={items.length} onScroll={updateVisibleItems}>
@@ -121,17 +152,17 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
         className={className}
         style={{
           display: "grid",
-          gridTemplateRows: `repeat(${dimensions.rows}, minmax(${minItemHeight}px, 1fr)`,
+          gridTemplateRows: `repeat(${gridState.rows}, minmax(${minItemHeight}px, 1fr)`,
           gridTemplateColumns: `repeat(auto-fit, minmax(${minItemWidth}px, 1fr)`,
           gap: `${gridGap}px ${gridGap}px`,
           padding,
         }}
       >
-        {visibleItems.map(id => items[id] ? <Item
+        {gridState.visibleItems.map(id => items[id] ? <Item
           {...items[id]}
           key={id}
-          gridColumnStart={1 + id % dimensions.columns}
-          gridRowStart={1 + Math.floor(id / dimensions.columns)}
+          gridColumnStart={1 + id % gridState.columns}
+          gridRowStart={1 + Math.floor(id / gridState.columns)}
         /> : null)}
       </ div>
     </ ScrollContainer>

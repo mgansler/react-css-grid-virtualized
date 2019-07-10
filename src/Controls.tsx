@@ -4,7 +4,7 @@ import { Grid } from "./Grid"
 import { Item, ItemProps } from "./Item"
 import "./controls.css"
 
-const INITIAL_ITEM_COUNT = 10
+const INITIAL_ITEM_COUNT = 40
 
 const generateItems = (count: number): ItemProps[] => {
   const items: ItemProps[] = []

@@ -40,6 +40,58 @@ These values (`row`/`column`) are independent of paddings, gaps and even dynamic
 
 ## Demo
 
+In our example we will build a gallery that shows images of cute little kittens in a grid layout.
+We have an array of **40** URLs and we want each image to be at least **400 pixels** wide but all tiles should have the same dimensions.
+We also want some space around each tile in our gallery (our grid will have a padding of **5 pixels** and a gap of **10 pixels**).
+
+### Static Example
+
+Given a browser size of **1920 x 1080 pixels** of we want our component to return something like this (first 12 items):
+
+```html
+<div id="scrollContainer" style="overflow-y: scroll; height: 100%">
+  <div id="grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); grid-template-rows: repeat(10, minmax(400px, 1fr)); gap: 10px 10px; padding: 5px;">
+    <div id="item_1" style="grid-row-start: 1; grid-column-start: 1;">Item 1</div>
+    <div id="item_2" style="grid-row-start: 1; grid-column-start: 2;">Item 2</div>
+    ...
+    <div id="item_12" style="grid-row-start: 3; grid-column-start: 4;">Item 12</div>
+  </div>
+</div>
+```
+
+And after scrolling down to the bottom (last 12 items):
+
+```html
+<div id="scrollContainer" style="overflow-y: scroll; height: 100%">
+  <div id="grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); grid-template-rows: repeat(10, minmax(400px, 1fr)); gap: 10px 10px; padding: 5px;">
+    <div id="item_28" style="grid-row-start: 8; grid-column-start: 1;">Item 28</div>
+    <div id="item_29" style="grid-row-start: 8; grid-column-start: 2;">Item 29/div>
+    ...
+    <div id="item_40" style="grid-row-start: 10; grid-column-start: 4;">Item 40</div>
+  </div>
+</div>
+```
+
+Our `scrollContainer` is pretty much self explanatory: it will fill the available space and have its content scrollable vertically.
+Let's take a closer look at the `grid`:
+
+* `display: grid;`
+  tells the browser that we want a CSS Grid
+* `grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));`
+  tells the browser to fit as many items as possible in one row as long as they are at least `400px` wide.
+  They also should all have the same width (`1fr`)
+* `grid-template-rows: repeat(10, minmax(400px, 1fr));`
+  tells the browser to have 10 rows of 400px height.
+  Where did the `10` come from? We need to calculate that in our component (40 items / 4 columns => 10 rows).
+  We also use `minmax(400px, 1fr)` here, but more on that later.
+* `gap: 10px 10px;` will result in a horizontal and vertical gap between each item of 10 pixels.
+* `padding: 5px` will result in a 5 pixel space around the outermost tiles.
+
+The neat thing about CSS Grids is, that you can specify where exactly an `item` needs to go.
+By specifying `grid-row-start` and `grid-column-start` we can position each `item` exactly where we want to without manually calculating the `top`/`left` property.
+
+### React
+
 The Demo will be implemented as a Functional Component utilizing [React Hooks](https://reactjs.org/docs/hooks-intro.html).
 
 Our input (to be changed by the user) are the following properties:
@@ -61,103 +113,158 @@ Additionally, the developer can provide the following properties during build ti
 */
 ```
 
-We want our component to return something like this (first 20 items):
-
-```html
-<div style="overflow-y: hidden; max-height: 100%">
-  <div style="display: grid; grid-template-columns: repeat(4, 400px); grid-template-rows: repeat(10, 400px)">
-    <div style="grid-column-start: 1; grid-row-start: 1">Item 1</div>
-    <div style="grid-column-start: 2; grid-row-start: 1">Item 2</div>
-    ...
-    <div style="grid-column-start: 4; grid-row-start: 5">Item 20</div>
-  </div>
-</div>
-```
-
-And after scrolling down to the bottom (last 20 items):
-
-```html
-<div style="overflow-y: hidden; max-height: 100%">
-  <div style="display: grid; grid-template-columns: repeat(4, 400px); grid-template-rows: repeat(10, 400px)">
-    <div style="grid-column-start: 1; grid-row-start: 6">Item 21</div>
-    <div style="grid-column-start: 2; grid-row-start: 6">Item 22</div>
-    ...
-    <div style="grid-column-start: 4; grid-row-start: 10">Item 40</div>
-  </div>
-</div>
-```
-
 ### Hooks
 
 Our components needs a few Hooks to properly function:
 
-#### `useRef`
+#### [`useRef`](https://reactjs.org/docs/hooks-reference.html#useref)
 
-explain hook
-
-A reference to the `<div />` Element that is our Grid.
+This hooks gives us a reference to the `<div />` Element that is our Grid.
 We need this for access to the dimensions and scroll position of the container wrapping the grid.
 
 ```typescript jsx
   const gridRef = useRef<HTMLDivElement>(null)
 ```
 
-#### `useState`
+#### [`useState`](https://reactjs.org/docs/hooks-reference.html#usestate)
 
-explain hook
-
-We need to store the `dimensions`, meaning the number of `rows` and `columns` in our grid
-as well as `visibleItems`, that stores the indices of the currently visible items.
+Functional components are stateless by default.
+The `useState` hook gives us a way to pass (and mutate) some value from one render iteration to another.
+In our case we need to store the count of `rows` and `columns` in our grid as well as what items are currently visible.
+The `renderState` is required because we the first to render iterations are special.
 
 ```typescript jsx
-  // Do not render any items on the first iteration
-  const [dimensions, setDimensions] = useState<Dimensions>({ rows: 0, columns: 0 })
-  const [visibleItems, setVisibleItems] = useState<number[]>([])
+// Do not render any items on the first iteration
+const [gridState, setGridState] = useState<GridState>({
+  rows: 0,
+  columns: 0,
+  visibleItems: [],
+  renderState: RenderState.Initial,
+})
 ```
 
-#### `useCallback`
+#### [`useCallback`](https://reactjs.org/docs/hooks-reference.html#usecallback)
 
-explain hook
+TODO: this will hopefully go away when we use `useReducer`
 
-1. `handleScroll`:
-  This method is called `onScroll` and updates the `visibleItems` array.
+```typescript jsx
+const updateVisibleItems = useCallback(() => {
+  if (gridRef.current !== null) {
+    // CSS Grid auto-fit puts as many items in a single row as long as they can be wider than the minimal item width.
+    // It uses the exact value of the grid to calculate that. (gridRef.current.clientWidth is rounded)
+    // We add an additional virtual gap to the width so we can divide by (minItemWidth + gridGap).
+    const columnCount = Math.floor((gridRef.current.getBoundingClientRect().width + gridGap - 2 * padding) / (minItemWidth + gridGap))
+    const rowCount = Math.ceil(items.length / columnCount)
+    if (gridState.renderState === RenderState.Initial) {
+      setGridState({
+        rows: rowCount,
+        columns: columnCount,
+        visibleItems: range(0, Math.min(columnCount, items.length)),
+        renderState: RenderState.SingleRow,
+      })
+      return
+    }
+    const { parentElement, scrollHeight } = gridRef.current
+    // Our row height is the height of an item plus a grid gap
+    const rowHeightWithGap = ((scrollHeight + gridGap - 2 * padding) / rowCount)
+    // For the first visible row we are interested when the lower boundary of an item enters/leaves the screen.
+    let firstVisibleRow = Math.max(Math.floor((parentElement!.scrollTop + gridGap - padding) / rowHeightWithGap), 0)
+    // For the last visible row we are interested when the upper boundary of an item enters/leaves the screen.
+    const lastVisibleRow = Math.floor((parentElement!.scrollTop + parentElement!.getBoundingClientRect().height - padding) / rowHeightWithGap)
+    // If only a single row fit's the screen we also render the row above
+    // to avoid jumping that might occur when the last (total) row contains fewer items that would fit.
+    // Otherwise, these items would appear stretched.
+    if (firstVisibleRow === lastVisibleRow && firstVisibleRow > 0) {
+      firstVisibleRow--
+    }
+    const newVisibleItems = range(
+      firstVisibleRow * columnCount,
+      Math.min(lastVisibleRow * columnCount + columnCount, items.length),
+    )
+    // Avoid re-rendering when items do not change
+    const newGridState: GridState = {
+      rows: rowCount,
+      columns: columnCount,
+      visibleItems: newVisibleItems,
+      renderState: RenderState.Continuous,
+    }
+    if (isUpdateRequired(gridState, newGridState)) {
+      setGridState(newGridState)
+    }
+  }
+}, [gridState, items.length, padding, gridGap, minItemWidth])
+```
 
-    ```typescript jsx
-    ```
 
-2. `handleResize`:
-  This callback is responsible for updating the dimensions.
-  It is called whenever the browser window size changes.
-
-    ```typescript jsx
-    ```
-
-
-#### `useEffect`
+#### [`useEffect`](https://reactjs.org/docs/hooks-reference.html#useffect)
 
 An effect is something that is called *after* a component has been rendered.
-In this case it registers the `handleResize` callback to the Window `resize` event.
-It also calls the `handleResize` (which than calls `handleScroll`) method after the initial render so that the correct amount of items is rendered.
+In this case it registers the `updateVisibleItems` callback to the Window `resize` event.
+It also calls the `updateVisibleItems` after the first two render iterations to ensure the correct amount if items is rendered.
 
 ```typescript jsx
 useEffect(() => {
-  window.addEventListener("resize", handleResize)
-  handleResize()
-  
-  return () => {
-    window.removeEventListener("resize", handleResize)
+  window.addEventListener("resize", updateVisibleItems)
+  if (gridState.renderState < RenderState.Continuous) {
+    updateVisibleItems()
   }
-}, [items, minItemWidth, gridGap, padding, handleScroll, handleResize])
+  return () => {
+    window.removeEventListener("resize", updateVisibleItems)
+  }
+}, [gridState.renderState, updateVisibleItems])
 ```
 
-### Return value 
+### Return value
+
+Every Function Component needs to return [JSX](https://reactjs.org/docs/introducing-jsx.html) that is than rendered in the browser.
+In our component it basically returns the static examples from above filled with values calculated by `updateVisibleItems`
 
 ```typescript jsx
-
+return (
+  <ScrollContainer itemCount={items.length} onScroll={updateVisibleItems}>
+    <div
+      ref={gridRef}
+      className={className}
+      style={{
+        display: "grid",
+        gridTemplateRows: `repeat(${gridState.rows}, minmax(${minItemHeight}px, 1fr)`,
+        gridTemplateColumns: `repeat(auto-fit, minmax(${minItemWidth}px, 1fr)`,
+        gap: `${gridGap}px ${gridGap}px`,
+        padding,
+      }}
+    >
+      {gridState.visibleItems.map(id => items[id] ? <Item
+        {...items[id]}
+        key={id}
+        gridColumnStart={1 + id % gridState.columns}
+        gridRowStart={1 + Math.floor(id / gridState.columns)}
+      /> : null)}
+    </ div>
+  </ ScrollContainer>
+)
 ```
+
+### Square Items
+
+Square items of dynamic size are usually solved with a CSS trick:
+
+```css
+.square:before {
+    content: "";
+    grid-row-start: 1;
+    grid-column-start: 1;
+    padding-bottom: 100%;
+}
+```
+
+When specifying the `padding` in percent it depends on the width of the parent element.
+In our case that is the grid slot, meaning that every tile will have the same height as its width.
+We only need to attach the `sqaure` class to our `grid` element.
+This works because in the case of CSS grid `:before` will be the *first* item in the grid, while `:after` will become the last item.
 
 ### What's missing
 
 - preloading
-- limit to 1000 (Chrome) / 10000 (Firefox) rows
+- limit of 1000 (Chrome) / 10000 (Firefox) rows
+- further optimizations
 
