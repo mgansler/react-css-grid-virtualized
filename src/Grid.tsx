@@ -46,7 +46,6 @@ interface GridState {
   visibleItems: number[]
   rows: number
   columns: number
-  renderState: RenderState
 }
 
 interface GridAction {
@@ -77,19 +76,18 @@ const isUpdateRequired = (oldGridState: GridState, newGridState: GridState): boo
 
 export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0 }: GridProps<T>) => {
   const gridRef = useRef<HTMLDivElement>(null)
+  const renderState = useRef<RenderState>(RenderState.Initial)
 
   const reduceGridState = useCallback((state: GridState, action: GridAction): GridState => {
-    console.log("reducer", action.type, state)
-
     const columnCount = Math.floor((gridRef.current!.getBoundingClientRect().width + gridGap - 2 * padding) / (minItemWidth + gridGap))
     const rowCount = Math.ceil(items.length / columnCount)
 
     if (action.type === Action.Initial) {
+      renderState.current = RenderState.SingleRow
       return {
         rows: rowCount,
         columns: columnCount,
         visibleItems: range(0, Math.min(columnCount, items.length)),
-        renderState: RenderState.SingleRow,
       }
     }
 
@@ -119,48 +117,48 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
       rows: rowCount,
       columns: columnCount,
       visibleItems: newVisibleItems,
-      renderState: RenderState.Continuous,
     }
 
+    renderState.current = RenderState.Continuous
     return isUpdateRequired(state, newState) ? newState : state
 
   }, [gridGap, items.length, minItemWidth, padding])
 
-  const [gridState, setGridState] = useReducer(reduceGridState, {
+  const [gridState, dispatchGridState] = useReducer(reduceGridState, {
     rows: 0,
     columns: 0,
     visibleItems: [],
-    renderState: RenderState.Initial,
   })
 
   useEffect(() => {
-    if (gridState.renderState === RenderState.Continuous) {
-      setGridState({ type: Action.PropsUpdate })
+    if (renderState.current === RenderState.Continuous) {
+      dispatchGridState({ type: Action.PropsUpdate })
     }
-  }, [gridGap, items.length, minItemWidth, padding])
+  }, [gridGap, items.length, minItemWidth, padding, className])
 
   useEffect(() => {
-    if (gridState.renderState === RenderState.Initial) {
-      setGridState({ type: Action.Initial })
+    // Use switch to ensure only one action is dispatched
+    switch (renderState.current) {
+      case RenderState.Initial:
+        dispatchGridState({ type: Action.Initial })
+        break
+      case RenderState.SingleRow:
+        dispatchGridState({ type: Action.Secondary })
+        break
     }
-    if (gridState.renderState === RenderState.SingleRow) {
-      setGridState({ type: Action.Secondary })
-    }
-  }, [gridState.renderState])
+  })
 
   useEffect(() => {
     // @ts-ignore
-    window.addEventListener("resize", setGridState)
+    window.addEventListener("resize", dispatchGridState)
     return () => {
       // @ts-ignore
-      window.removeEventListener("resize", setGridState)
+      window.removeEventListener("resize", dispatchGridState)
     }
   }, [])
 
-  console.log("render", gridState)
-
   return (
-    <ScrollContainer itemCount={items.length} onScroll={setGridState}>
+    <ScrollContainer itemCount={items.length} onScroll={dispatchGridState}>
       <div
         ref={gridRef}
         className={className}
