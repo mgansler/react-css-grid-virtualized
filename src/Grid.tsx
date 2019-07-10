@@ -15,6 +15,7 @@ interface GridProps<T> {
   minItemHeight?: number
   minItemWidth?: number
   padding?: number
+  preload?: number
 }
 
 interface ScrollContainerProps {
@@ -32,9 +33,7 @@ enum Action {
 
 const ScrollContainer: React.FC<ScrollContainerProps> = ({ children, itemCount, onScroll }) => <div
   style={{ overflowY: itemCount > 0 ? "scroll" : "hidden", height: "100%" }}
-  onScroll={debounce(() => {
-    onScroll({ type: Action.Scroll })
-  }, 50)}>{children}</div>
+  onScroll={debounce(() => onScroll({ type: Action.Scroll }), 50)}>{children}</div>
 
 enum RenderState {
   Initial,
@@ -74,7 +73,7 @@ const isUpdateRequired = (oldGridState: GridState, newGridState: GridState): boo
   return currentColumns !== newColumns || currentRows !== newRows || !areVisibleItemsEqual(currentVisibleItems, newVisibleItems)
 }
 
-export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0 }: GridProps<T>) => {
+export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0, preload = 0 }: GridProps<T>) => {
   const gridRef = useRef<HTMLDivElement>(null)
   const renderState = useRef<RenderState>(RenderState.Initial)
 
@@ -82,6 +81,7 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
     const columnCount = Math.floor((gridRef.current!.getBoundingClientRect().width + gridGap - 2 * padding) / (minItemWidth + gridGap))
     const rowCount = Math.ceil(items.length / columnCount)
 
+    // After the initial render we add a single row so we know the height of the grid during the next render
     if (action.type === Action.Initial) {
       renderState.current = RenderState.SingleRow
       return {
@@ -97,9 +97,9 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
     const rowHeightWithGap = ((scrollHeight + gridGap - 2 * padding) / state.rows)
 
     // For the first visible row we are interested when the lower boundary of an item enters/leaves the screen.
-    let firstVisibleRow = Math.max(Math.floor((parentElement!.scrollTop + gridGap - padding) / rowHeightWithGap), 0)
+    let firstVisibleRow = Math.max(Math.floor((parentElement!.scrollTop + gridGap - padding) / rowHeightWithGap - preload), 0)
     // For the last visible row we are interested when the upper boundary of an item enters/leaves the screen.
-    const lastVisibleRow = Math.floor((parentElement!.scrollTop + parentElement!.getBoundingClientRect().height - padding) / rowHeightWithGap)
+    const lastVisibleRow = Math.floor((parentElement!.scrollTop + parentElement!.getBoundingClientRect().height - padding) / rowHeightWithGap + preload)
 
     // If only a single row fit's the screen we also render the row above
     // to avoid jumping that might occur when the last (total) row contains fewer items that would fit.
@@ -122,7 +122,7 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
     renderState.current = RenderState.Continuous
     return isUpdateRequired(state, newState) ? newState : state
 
-  }, [gridGap, items.length, minItemWidth, padding])
+  }, [gridGap, items.length, minItemWidth, padding, preload])
 
   const [gridState, dispatchGridState] = useReducer(reduceGridState, {
     rows: 0,
@@ -134,7 +134,7 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
     if (renderState.current === RenderState.Continuous) {
       dispatchGridState({ type: Action.PropsUpdate })
     }
-  }, [gridGap, items.length, minItemWidth, padding, className])
+  }, [gridGap, items.length, minItemWidth, padding, className, preload])
 
   useEffect(() => {
     // Use switch to ensure only one action is dispatched
@@ -150,10 +150,10 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
 
   useEffect(() => {
     // @ts-ignore
-    window.addEventListener("resize", dispatchGridState)
+    window.addEventListener(Action.Resize, dispatchGridState)
     return () => {
       // @ts-ignore
-      window.removeEventListener("resize", dispatchGridState)
+      window.removeEventListener(Action.Resize, dispatchGridState)
     }
   }, [])
 

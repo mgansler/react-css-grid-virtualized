@@ -264,7 +264,5 @@ This works because in the case of CSS grid `:before` will be the *first* item in
 
 ### What's missing
 
-- preloading
 - limit of 1000 (Chrome) / 10000 (Firefox) rows
-- further optimizations
 

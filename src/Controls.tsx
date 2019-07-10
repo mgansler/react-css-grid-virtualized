@@ -19,6 +19,7 @@ export const Controls: React.FC = () => {
   const [padding, setPadding] = useState<number>(5)
   const [gap, setGap] = useState<number>(10)
   const [isSquare, setIsSquare] = useState<boolean>(false)
+  const [preload, setPreload] = useState<number>(0)
 
   const handleUpdateItems = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const newCount = Number(event.target.value)
@@ -42,6 +43,10 @@ export const Controls: React.FC = () => {
     setIsSquare(event.target.checked)
   }
 
+  const handleUpdatePreload = (event: ChangeEvent<HTMLInputElement>) => {
+    setPreload(Number(event.target.value))
+  }
+
   return <div className={"container"}>
     <div className={"controls"}>
       <label htmlFor={"count"}>Item Count:</label>
@@ -50,15 +55,19 @@ export const Controls: React.FC = () => {
       <input id={"padding"} type="number" value={padding} onChange={handleUpdatePadding} min={0}/>
       <label htmlFor={"gap"}>Grid Gap:</label>
       <input id={"gap"} type="number" value={gap} onChange={handleUpdateGap} min={0}/>
+      <label htmlFor={"preload"}>Preload Rows:</label>
+      <input id={"preload"} type="number" value={preload} onChange={handleUpdatePreload} min={0}/>
       <label htmlFor={"isSquare"}>Square Items:</label>
       <input id={"isSquare"} type="checkbox" checked={isSquare}
              onChange={handleUpdateIsSquare}/>
+
     </div>
     <Grid<ItemProps>
       className={isSquare ? "square" : undefined}
       Item={Item}
       items={items}
       padding={padding}
+      preload={preload}
       gridGap={gap}
     />
   </div>
