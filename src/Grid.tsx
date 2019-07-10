@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Dispatch, useCallback, useEffect, useReducer, useRef } from "react"
+import { Dispatch, useEffect, useReducer, useRef } from "react"
 import { debounce, range } from "lodash"
 
 export interface GridPosition {
@@ -77,7 +77,7 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
   const gridRef = useRef<HTMLDivElement>(null)
   const renderState = useRef<RenderState>(RenderState.Initial)
 
-  const reduceGridState = useCallback((state: GridState, action: GridAction): GridState => {
+  function reduceGridState(state: GridState, action: GridAction): GridState {
     const columnCount = Math.floor((gridRef.current!.getBoundingClientRect().width + gridGap - 2 * padding) / (minItemWidth + gridGap))
     const rowCount = Math.ceil(items.length / columnCount)
 
@@ -121,20 +121,14 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
 
     renderState.current = RenderState.Continuous
     return isUpdateRequired(state, newState) ? newState : state
-
-  }, [gridGap, items.length, minItemWidth, padding, preload])
+  }
 
   const [gridState, dispatchGridState] = useReducer(reduceGridState, {
+    // Initially we do not render any items
     rows: 0,
     columns: 0,
     visibleItems: [],
   })
-
-  useEffect(() => {
-    if (renderState.current === RenderState.Continuous) {
-      dispatchGridState({ type: Action.PropsUpdate })
-    }
-  }, [gridGap, items.length, minItemWidth, padding, className, preload])
 
   useEffect(() => {
     // Use switch to ensure only one action is dispatched
@@ -147,6 +141,12 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
         break
     }
   })
+
+  useEffect(() => {
+    if (renderState.current === RenderState.Continuous) {
+      dispatchGridState({ type: Action.PropsUpdate })
+    }
+  }, [gridGap, items.length, minItemWidth, padding, className, preload])
 
   useEffect(() => {
     // @ts-ignore

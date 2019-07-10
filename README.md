@@ -126,93 +126,116 @@ We need this for access to the dimensions and scroll position of the container w
   const gridRef = useRef<HTMLDivElement>(null)
 ```
 
-#### [`useState`](https://reactjs.org/docs/hooks-reference.html#usestate)
+#### [`useReducer`](https://reactjs.org/docs/hooks-reference.html#usereducer)
 
-Functional components are stateless by default.
-The `useState` hook gives us a way to pass (and mutate) some value from one render iteration to another.
-In our case we need to store the count of `rows` and `columns` in our grid as well as what items are currently visible.
-The `renderState` is required because we the first to render iterations are special.
-
+This reducer enables the component to transfer state from one render iteration to the next.
+There is also [`useState`](https://reactjs.org/docs/hooks-reference.html#usestate) for simple values like a counter or a boolean.
+In our case we do complex calculations and return a state with three sub-values (`rows`, `columns` and `visibleItems`).
 ```typescript jsx
-// Do not render any items on the first iteration
-const [gridState, setGridState] = useState<GridState>({
+function reduceGridState (state: GridState, action: GridAction): GridState {
+  const columnCount = Math.floor((gridRef.current!.getBoundingClientRect().width + gridGap - 2 * padding) / (minItemWidth + gridGap))
+  const rowCount = Math.ceil(items.length / columnCount)
+  
+  // After the initial render we add a single row so we know the height of the grid during the next render
+  if (action.type === Action.Initial) {
+    renderState.current = RenderState.SingleRow
+    return {
+      rows: rowCount,
+      columns: columnCount,
+      visibleItems: range(0, Math.min(columnCount, items.length)),
+    }
+  }
+  
+  const { parentElement, scrollHeight } = gridRef.current!
+  
+  // Our row height is the height of an item plus a grid gap
+  const rowHeightWithGap = ((scrollHeight + gridGap - 2 * padding) / state.rows)
+  
+  // For the first visible row we are interested when the lower boundary of an item enters/leaves the screen.
+  let firstVisibleRow = Math.max(Math.floor((parentElement!.scrollTop + gridGap - padding) / rowHeightWithGap - preload), 0)
+  // For the last visible row we are interested when the upper boundary of an item enters/leaves the screen.
+  const lastVisibleRow = Math.floor((parentElement!.scrollTop + parentElement!.getBoundingClientRect().height - padding) / rowHeightWithGap + preload)
+  
+  // If only a single row fit's the screen we also render the row above
+  // to avoid jumping that might occur when the last (total) row contains fewer items that would fit.
+  // Otherwise, these items would appear stretched.
+  if (firstVisibleRow === lastVisibleRow && firstVisibleRow > 0) {
+    firstVisibleRow--
+  }
+  
+  const newVisibleItems = range(
+    firstVisibleRow * columnCount,
+    Math.min(lastVisibleRow * columnCount + columnCount, items.length),
+  )
+  
+  const newState: GridState = {
+    rows: rowCount,
+    columns: columnCount,
+    visibleItems: newVisibleItems,
+  }
+  
+  renderState.current = RenderState.Continuous
+  return isUpdateRequired(state, newState) ? newState : state
+}
+  
+const [gridState, dispatchGridState] = useReducer(reduceGridState, {
+  // Initially we do not render any items
   rows: 0,
   columns: 0,
   visibleItems: [],
-  renderState: RenderState.Initial,
 })
 ```
-
-#### [`useCallback`](https://reactjs.org/docs/hooks-reference.html#usecallback)
-
-TODO: this will hopefully go away when we use `useReducer`
-
-```typescript jsx
-const updateVisibleItems = useCallback(() => {
-  if (gridRef.current !== null) {
-    // CSS Grid auto-fit puts as many items in a single row as long as they can be wider than the minimal item width.
-    // It uses the exact value of the grid to calculate that. (gridRef.current.clientWidth is rounded)
-    // We add an additional virtual gap to the width so we can divide by (minItemWidth + gridGap).
-    const columnCount = Math.floor((gridRef.current.getBoundingClientRect().width + gridGap - 2 * padding) / (minItemWidth + gridGap))
-    const rowCount = Math.ceil(items.length / columnCount)
-    if (gridState.renderState === RenderState.Initial) {
-      setGridState({
-        rows: rowCount,
-        columns: columnCount,
-        visibleItems: range(0, Math.min(columnCount, items.length)),
-        renderState: RenderState.SingleRow,
-      })
-      return
-    }
-    const { parentElement, scrollHeight } = gridRef.current
-    // Our row height is the height of an item plus a grid gap
-    const rowHeightWithGap = ((scrollHeight + gridGap - 2 * padding) / rowCount)
-    // For the first visible row we are interested when the lower boundary of an item enters/leaves the screen.
-    let firstVisibleRow = Math.max(Math.floor((parentElement!.scrollTop + gridGap - padding) / rowHeightWithGap), 0)
-    // For the last visible row we are interested when the upper boundary of an item enters/leaves the screen.
-    const lastVisibleRow = Math.floor((parentElement!.scrollTop + parentElement!.getBoundingClientRect().height - padding) / rowHeightWithGap)
-    // If only a single row fit's the screen we also render the row above
-    // to avoid jumping that might occur when the last (total) row contains fewer items that would fit.
-    // Otherwise, these items would appear stretched.
-    if (firstVisibleRow === lastVisibleRow && firstVisibleRow > 0) {
-      firstVisibleRow--
-    }
-    const newVisibleItems = range(
-      firstVisibleRow * columnCount,
-      Math.min(lastVisibleRow * columnCount + columnCount, items.length),
-    )
-    // Avoid re-rendering when items do not change
-    const newGridState: GridState = {
-      rows: rowCount,
-      columns: columnCount,
-      visibleItems: newVisibleItems,
-      renderState: RenderState.Continuous,
-    }
-    if (isUpdateRequired(gridState, newGridState)) {
-      setGridState(newGridState)
-    }
-  }
-}, [gridState, items.length, padding, gridGap, minItemWidth])
-```
-
+The reducer (`function reduceGridState`) calculates how many items fit in one row of the grid (and how many rows the grid needs to fit *all* items).
+It than determines what items are currently visible depending on the scroll position and returns the new state.
+The update of the state triggers a new render.
 
 #### [`useEffect`](https://reactjs.org/docs/hooks-reference.html#useffect)
 
 An effect is something that is called *after* a component has been rendered.
-In this case it registers the `updateVisibleItems` callback to the Window `resize` event.
-It also calls the `updateVisibleItems` after the first two render iterations to ensure the correct amount if items is rendered.
+We use three different effects in our component:
 
-```typescript jsx
-useEffect(() => {
-  window.addEventListener("resize", updateVisibleItems)
-  if (gridState.renderState < RenderState.Continuous) {
-    updateVisibleItems()
-  }
-  return () => {
-    window.removeEventListener("resize", updateVisibleItems)
-  }
-}, [gridState.renderState, updateVisibleItems])
-```
+1.  Dispatch the correct actions after the initial and secondary render iteration:
+    ```typescript jsx
+    useEffect(() => {
+      // Use switch to ensure only one action is dispatched
+      switch (renderState.current) {
+        case RenderState.Initial:
+          dispatchGridState({ type: Action.Initial })
+          break
+        case RenderState.SingleRow:
+          dispatchGridState({ type: Action.Secondary })
+          break
+      }
+    })
+    ```
+    Because this effect has no dependencies (second optional parameter, see below) it will be called after every render.
+    But it will only dispatch an action after the first and second render.
+    
+2.  Dispatch an update action after the props of the component have changed
+    ```typescript jsx
+    useEffect(() => {
+      if (renderState.current === RenderState.Continuous) {
+        dispatchGridState({ type: Action.PropsUpdate })
+      }
+    }, [gridGap, items.length, minItemWidth, padding, className, preload])
+    ```
+    This effect has dependencies on all props of the component and will be called when any changes,
+    resulting in a change of the gridState when necessary.
+    
+3.  Register an event listener for browser window resize.
+    ```typescript jsx
+    useEffect(() => {
+      // @ts-ignore
+      window.addEventListener(Action.Resize, dispatchGridState)
+      return () => {
+        // @ts-ignore
+        window.removeEventListener(Action.Resize, dispatchGridState)
+      }
+    }, [])
+    ```
+    This effect has the empty array as dependencies.
+    It will only be called once (after the initial render), registering the event listener.
+    It also returns a function that is called on un-mounting the component, removing the event listener.
 
 ### Return value
 
@@ -246,7 +269,7 @@ return (
 
 ### Square Items
 
-Square items of dynamic size are usually solved with a CSS trick:
+Square items of dynamic size are usually achieved with a CSS trick:
 
 ```css
 .square:before {
