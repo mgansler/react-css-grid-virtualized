@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Dispatch, useEffect, useReducer, useRef } from "react"
-import { debounce, range } from "lodash"
+import { range, throttle } from "lodash"
 
 export interface GridPosition {
   gridRowStart: number
@@ -33,7 +33,7 @@ enum Action {
 
 const ScrollContainer: React.FC<ScrollContainerProps> = ({ children, itemCount, onScroll }) => <div
   style={{ overflowY: itemCount > 0 ? "scroll" : "hidden", height: "100%" }}
-  onScroll={debounce(() => onScroll({ type: Action.Scroll }), 50)}>{children}</div>
+  onScroll={throttle(() => onScroll({ type: Action.Scroll }), 100)}>{children}</div>
 
 enum RenderState {
   Initial,
@@ -78,7 +78,8 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400,
   const renderState = useRef<RenderState>(RenderState.Initial)
 
   function reduceGridState(state: GridState, action: GridAction): GridState {
-    const columnCount = Math.floor((gridRef.current!.getBoundingClientRect().width + gridGap - 2 * padding) / (minItemWidth + gridGap))
+    // We want at least one column, even if the parent is narrower than the minItemWidth
+    const columnCount = Math.max(Math.floor((gridRef.current!.getBoundingClientRect().width + gridGap - 2 * padding) / (minItemWidth + gridGap)), 1)
     const rowCount = Math.ceil(items.length / columnCount)
 
     // After the initial render we add a single row so we know the height of the grid during the next render
