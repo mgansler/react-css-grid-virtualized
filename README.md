@@ -93,6 +93,7 @@ By specifying `grid-row-start` and `grid-column-start`, we can position each `it
 ### React
 
 The demo will be implemented as a Functional Component utilizing [React Hooks](https://reactjs.org/docs/hooks-intro.html).
+The code can be found on [GitHub](https://github.com/mgansler/react-virtualized-kittens).
 
 Our input (to be changed by the user) are the following properties:
 
