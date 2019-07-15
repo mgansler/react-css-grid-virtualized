@@ -17,7 +17,7 @@
     border: 3px solid blue;
 }
 
-.preload {
+.header {
     position: absolute;
     left: 50%;
     transform: translate(-50%, 0);

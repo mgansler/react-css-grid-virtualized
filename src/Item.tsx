@@ -1,6 +1,6 @@
 import * as React from "react"
 import "./item.css"
-import { GridPosition } from "./Grid.fc"
+import { GridPosition } from "./types"
 
 export interface ItemProps {
   width: number

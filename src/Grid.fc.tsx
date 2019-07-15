@@ -1,77 +1,9 @@
 import * as React from "react"
-import { Dispatch, useEffect, useReducer, useRef } from "react"
-import { range, throttle } from "lodash"
-
-export interface GridPosition {
-  gridRowStart: number
-  gridColumnStart: number
-}
-
-interface GridProps<T> {
-  className?: string
-  gridGap?: number
-  Item: React.FC<T & GridPosition>
-  items: T[]
-  minItemHeight?: number
-  minItemWidth?: number
-  padding?: number
-  preload?: number
-}
-
-interface ScrollContainerProps {
-  itemCount: number
-  onScroll: Dispatch<GridAction>
-}
-
-enum Action {
-  Initial = "initial",
-  Secondary = "secondary",
-  PropsUpdate = "props updated",
-  Resize = "resize",
-  Scroll = "scroll",
-}
-
-const ScrollContainer: React.FC<ScrollContainerProps> = ({ children, itemCount, onScroll }) => <div
-  style={{ overflowY: itemCount > 0 ? "scroll" : "hidden", height: "100%" }}
-  onScroll={throttle(() => onScroll({ type: Action.Scroll }), 100)}>{children}</div>
-
-enum RenderState {
-  Initial,
-  SingleRow,
-  Continuous,
-}
-
-interface GridState {
-  visibleItems: number[]
-  rows: number
-  columns: number
-}
-
-interface GridAction {
-  type: Action
-}
-
-// Compares the first and last element of the given arrays
-const areVisibleItemsEqual = (lastVisibleItems: number[], newVisibleItems: number[]) => {
-  if (lastVisibleItems.length !== newVisibleItems.length) {
-    return false
-  }
-  const length = lastVisibleItems.length
-
-  if (length === 0) {
-    // both empty
-    return true
-  }
-
-  return lastVisibleItems[0] === newVisibleItems[0] && lastVisibleItems[length - 1] === newVisibleItems[length - 1]
-}
-
-const isUpdateRequired = (oldGridState: GridState, newGridState: GridState): boolean => {
-  const { rows: currentRows, columns: currentColumns, visibleItems: currentVisibleItems } = oldGridState
-  const { rows: newRows, columns: newColumns, visibleItems: newVisibleItems } = newGridState
-
-  return currentColumns !== newColumns || currentRows !== newRows || !areVisibleItemsEqual(currentVisibleItems, newVisibleItems)
-}
+import { useEffect, useReducer, useRef } from "react"
+import { range } from "lodash"
+import { Action, GridAction, GridProps, GridState, RenderState } from "./types"
+import { ScrollContainer } from "./ScrollContainer"
+import { isUpdateRequired } from "./isUpdateRequired"
 
 export const GridFc = <T extends {}>({ className, items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0, preload = 0 }: GridProps<T>) => {
   const gridRef = useRef<HTMLDivElement>(null)
