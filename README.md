@@ -3,11 +3,11 @@
 ## What this is about
 
 When dealing with hugh amounts of data, displaying all of it can hinder rendering performance of the browser.
-[Googles recommends](https://developers.google.com/web/tools/lighthouse/audits/dom-size) to limit the number of DOM elements to 1,500 and to have no more than 60 child nodes for any given element.
+[Google recommends](https://developers.google.com/web/tools/lighthouse/audits/dom-size) to limit the number of DOM elements to 1,500 and to have no more than 60 child nodes for any given element.
 It is important to keep in mind, that a single entry in a list may result in multiple DOM elements.
-To mitigate this issue it is common (best?) practice to [virtualize](https://reactjs.org/docs/optimizing-performance.html#virtualize-long-lists) the DOM, meaning to only render the items actually visible to the user.
+To mitigate this issue it is best practice to [virtualize](https://reactjs.org/docs/optimizing-performance.html#virtualize-long-lists) the DOM, meaning to only render the items actually visible to the user.
 This is also known as lazy rendering or windowing.
-Given 1,000 cute little kittens, only 20 or so are visible on the screen at any given time.
+Given 1,000 cute little kittens, only about 20 are visible on the screen at any given time.
 So why render the 980 others?
 
 ## Motivation
@@ -21,10 +21,10 @@ Most virtualization libraries I am aware of [[1](https://github.com/bvaughn/reac
 
 Every time the browser window size changes, these values need to be calculated again.
 
-## CSS Grid
+## CSS GridFc
 
 What if the browser could help with calculating all these numbers?
-Well, it actually can with [CSS Grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout).
+Well, it actually can with [CSS GridFc](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout).
 It has a few advantages to the common approach above.
 
 ### Fraction Unit
@@ -32,9 +32,9 @@ It has a few advantages to the common approach above.
 The fraction unit allows for same (relative) width/height items in the grid.
 Given the number of rows/columns and a single rendered item, the total dimension of the grid is calculated automatically.
 
-### Grid Slots
+### GridFc Slots
 
-With CSS Grid, there is no need to calculate the `left`/`top` values but the `row` and `column` of each item.
+With CSS GridFc, there is no need to calculate the `left`/`top` values but the `row` and `column` of each item.
 These values (`row`/`column`) are independent of paddings, gaps and even dynamic row heights / column widths.
 
 ## Demo
@@ -63,19 +63,19 @@ And after scrolling down to the bottom (last 12 items):
 ```html
 <div id="scrollContainer" style="overflow-y: scroll; height: 100%">
   <div id="grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); grid-template-rows: repeat(10, minmax(400px, 1fr)); gap: 10px 10px; padding: 5px;">
-    <div id="item_28" style="grid-row-start: 8; grid-column-start: 1;">Item 29</div>
-    <div id="item_29" style="grid-row-start: 8; grid-column-start: 2;">Item 30</div>
+    <div id="item_29" style="grid-row-start: 8; grid-column-start: 1;">Item 29</div>
+    <div id="item_30" style="grid-row-start: 8; grid-column-start: 2;">Item 30</div>
     ...
     <div id="item_40" style="grid-row-start: 10; grid-column-start: 4;">Item 40</div>
   </div>
 </div>
 ```
 
-Our `#scrollContainer` is pretty much self explanatory: it will fill the available space and have its content scrollable vertically.
-Lets take a closer look at the `#grid`:
+Our `#scrollContainer` is pretty much self explanatory: It will fill the available space and have its content scrollable vertically.
+Lets take a closer look at the `#grid`:1fr
 
 * `display: grid;`
-  tells the browser that we want a CSS Grid.
+  tells the browser that we want a CSS GridFc.
 * `grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));`
   tells the browser to fit as many items as possible in one row as long as they are at least `400px` wide.
   They also should all have the same width (`1fr`)
@@ -92,7 +92,7 @@ By specifying `grid-row-start` and `grid-column-start`, we can position each `it
 
 ### React
 
-The demo will be implemented as a Functional Component utilizing [React Hooks](https://reactjs.org/docs/hooks-intro.html).
+The demo will be implemented as a Function Component utilizing [React Hooks](https://reactjs.org/docs/hooks-intro.html).
 The code can be found on [GitHub](https://github.com/mgansler/react-virtualized-kittens).
 
 Our input (to be changed by the user) are the following properties:
@@ -136,9 +136,10 @@ This has the disadvantage that we need three render iterations during the mounti
 
 Most of the time is spent in this phase.
 Other than updating the props there are two events that possibly change which and how many items are visible.
-There are two events that must trigger a recalculation: `resize` of the browser window and `scroll` on the `#scrollContainer`.
+There are two events that are bound to trigger a recalculation: `resize` of the browser window and `scroll` on the `#scrollContainer`.
 This first one doesn't happen as often but might still occur depending on the users workflow, placing the browser and another application side by side or going fullscreen for example.
-Scrolling will be by far the most frequent event.
+For mobile, rotating the device is also a resizing of the browser window.
+Scrolling will be the most frequent event by far.
 In fact the browser triggers the `scroll` event many times per second while scrolling.
 
 Both events can be handled with the same logic as the only difference is, that scrolling will never change the numbers of rows and columns.
@@ -150,7 +151,7 @@ Both events can be handled with the same logic as the only difference is, that s
 #### Unmounting
 
 There is not much to do in this phase as React takes care about removing the HTML elements from the DOM.
-Our Component just needs to remove the Event Listener for `resize`.
+Our component just needs to remove the Event Listener for `resize`.
 
 ### Hooks
 
@@ -158,7 +159,7 @@ Our component needs a few Hooks to properly function:
 
 #### [`useRef`](https://reactjs.org/docs/hooks-reference.html#useref)
 
-This hooks gives us a reference to the `<div />` Element that is our Grid.
+This hook gives us a reference to the `<div />` Element that is our GridFc.
 We need this for access to the dimensions and scroll position of the container wrapping the grid.
 
 ```typescript jsx
@@ -227,7 +228,7 @@ const [gridState, dispatchGridState] = useReducer(reduceGridState, {
 })
 ```
 The reducer (`function reduceGridState`) calculates how many items fit in one row of the grid (and how many rows the grid needs to fit *all* items).
-It than determines what items are currently visible depending on the scroll position and returns the new state.
+It then determines what items are currently visible depending on the scroll position and returns the new state.
 The update of the state triggers a new render.
 
 #### [`useEffect`](https://reactjs.org/docs/hooks-reference.html#useffect)
@@ -286,7 +287,7 @@ We use three different effects in our component:
 
 ### Return value
 
-Every Function Component needs to return [JSX](https://reactjs.org/docs/introducing-jsx.html) that is than rendered in the browser.
+Every Function Component needs to return [JSX](https://reactjs.org/docs/introducing-jsx.html) that is then rendered in the browser.
 In our component it basically returns the static examples from above filled with values calculated by `updateVisibleItems`
 
 ```typescript jsx
@@ -334,7 +335,7 @@ This works in the case of CSS grid because `:before` will be the *first* item in
 
 ### Known Limitations
 
-Browser enforce a limit how many tracks are allowed for each dimension in a CSS Grid due to memory limitations.
+Browsers enforce a limit how many tracks are allowed for each dimension in a CSS GridFc due to memory limitations.
 This number varies from browser to browser. For [Chrome](https://bugs.chromium.org/p/chromium/issues/detail?id=688640) it is 1,000, for [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1336679) 10.000.
 This means that if you want to have a gallery (or any grid) with more than 1000 rows and/or columns you need to find a workaround, e.g. a grid of grids.
-But even that the limitations still apply so maybe you want to use some other technique such as pagination.
+But even then the limitations still apply so maybe you want to use some other technique such as pagination.
