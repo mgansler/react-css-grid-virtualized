@@ -1,12 +1,12 @@
 import * as React from "react"
 import { ChangeEvent, useCallback, useState } from "react"
-import { Grid } from "./Grid"
+import { GridFc } from "./Grid.fc"
 import { Item, ItemProps } from "./Item"
 import "./controls.css"
 
 const INITIAL_ITEM_COUNT = 40
 
-const generateItems = (count: number): ItemProps[] => {
+export const generateItems = (count: number): ItemProps[] => {
   const items: ItemProps[] = []
   for (let i = 0; i < count; i++) {
     items.push({ width: Math.floor(Math.random() * 600 + 200), height: Math.floor(Math.random() * 400 + 200) })
@@ -62,7 +62,7 @@ export const Controls: React.FC = () => {
              onChange={handleUpdateIsSquare}/>
 
     </div>
-    <Grid<ItemProps>
+    <GridFc<ItemProps>
       className={isSquare ? "square" : undefined}
       Item={Item}
       items={items}

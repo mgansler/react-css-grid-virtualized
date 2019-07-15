@@ -73,7 +73,7 @@ const isUpdateRequired = (oldGridState: GridState, newGridState: GridState): boo
   return currentColumns !== newColumns || currentRows !== newRows || !areVisibleItemsEqual(currentVisibleItems, newVisibleItems)
 }
 
-export const Grid = <T extends {}>({ className, items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0, preload = 0 }: GridProps<T>) => {
+export const GridFc = <T extends {}>({ className, items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0, preload = 0 }: GridProps<T>) => {
   const gridRef = useRef<HTMLDivElement>(null)
   const renderState = useRef<RenderState>(RenderState.Initial)
 

@@ -2,11 +2,11 @@ import React from "react"
 import ReactDOM from "react-dom"
 import "./index.css"
 import * as serviceWorker from "./serviceWorker"
-import { Controls } from "./Controls"
+import { SideBySide } from "./SideBySide"
 
 
 ReactDOM.render(
-  <Controls/>,
+  <SideBySide/>,
   document.getElementById("root"),
 )
 
