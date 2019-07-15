@@ -82,11 +82,9 @@ export const GridFc = <T extends {}>({ className, items, Item, minItemWidth = 40
   }, [gridGap, items.length, minItemWidth, padding, className, preload])
 
   useEffect(() => {
-    // @ts-ignore
-    window.addEventListener(Action.Resize, dispatchGridState)
+    window.addEventListener(Action.Resize, dispatchGridState as EventListener)
     return () => {
-      // @ts-ignore
-      window.removeEventListener(Action.Resize, dispatchGridState)
+      window.removeEventListener(Action.Resize, dispatchGridState as EventListener)
     }
   }, [])
 
