@@ -190,6 +190,46 @@ Both events can be handled with the same logic as the only difference is, that s
 There is not much to do in this phase as React takes care about removing the HTML elements from the DOM.
 Our component just needs to remove the Event Listener for `resize`.
 
+## Types
+
+The examples below use [Typescript], a superset of JavaScript with types.
+So lets start with the types definitions which will be used by both the Class and Function Component.
+
+```typescript
+import * as React from "react"
+
+export interface GridPosition {
+  gridRowStart: number
+  gridColumnStart: number
+}
+
+export interface GridProps<T> {
+  className?: string
+  gridGap?: number
+  Item: React.FC<T & GridPosition>
+  items: T[]
+  minItemHeight?: number
+  minItemWidth?: number
+  padding?: number
+  preload?: number
+}
+
+export interface GridState {
+  visibleItems: number[]
+  rows: number
+  columns: number
+}
+```
+
+The `GridPosition` is what is passed additionally to the `Item`.
+It tells the item in which row / column it belongs.
+
+`GridProps<T>` is a generic and defines the `props` of the Grid Component.
+Most of them are optional, the only required ones are the `Item` Component and the array of item data.
+
+The `GridState` defines the internal state of the components.
+The row and column count as well as the currently visible items.
+
 ## React Class Component
 
 We will start with the Class Component as this is what most developers are currently used to even though it was implemented after the Function Component.
@@ -363,6 +403,38 @@ To quote the React Docs:
 
 > An alternative to useState. Accepts a reducer of type (state, action) => newState, and returns the current state paired with a dispatch method.
 > **(If you’re familiar with Redux, you already know how this works.)**
+
+#### Types
+
+There are three types that are only used in the Function Component:
+
+```typescript
+export enum RenderState {
+  Initial,
+  SingleRow,
+  Continuous,
+}
+
+export enum Action {
+  Initial = "initial",
+  Secondary = "secondary",
+  PropsUpdate = "props updated",
+  Resize = "resize",
+  Scroll = "scroll",
+}
+
+export interface GridAction {
+  type: Action
+}
+```
+
+The `RenderState` is used to keep track of in which state the component currently is in.
+Same as the Class Component we render an empty Grid first, then a single row and only then we know how many are actually visible.
+The first row always will be visible as the user had no opportunity to scroll yet.
+
+The `Action` and `GridAction` could be simplified as we never use a payload in our actions, but we could.
+
+#### Reducer
 
 The reducer looks complicated but basically does two things: Calculate how many columns and rows are needed in total and which items are currently visible.
 
