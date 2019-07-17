@@ -1,5 +1,5 @@
 import React from "react"
-import { GridProps, GridState } from "./types"
+import { Action, GridProps, GridState } from "./types"
 import { ScrollContainer } from "./ScrollContainer"
 import { isUpdateRequired } from "./isUpdateRequired"
 import { range } from "./utils"
@@ -81,11 +81,11 @@ export class GridClass<T> extends React.Component<GridProps<T>, GridState> {
       visibleItems: range(0, Math.min(columnCount, items.length)),
     }, this.updateState)
 
-    window.addEventListener("resize", this.updateState)
+    window.addEventListener(Action.Resize, this.updateState)
   }
 
   componentWillUnmount(): void {
-    window.removeEventListener("resize", this.updateState)
+    window.removeEventListener(Action.Resize, this.updateState)
   }
 
   render() {
