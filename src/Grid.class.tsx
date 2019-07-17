@@ -62,6 +62,12 @@ export class GridClass<T> extends React.Component<GridProps<T>, GridState> {
     }
   }
 
+  componentDidUpdate(prevProps: Readonly<GridProps<T>>, prevState: Readonly<GridState>, snapshot?: any): void {
+    if (prevProps !== this.props) {
+      this.updateState()
+    }
+  }
+
   componentDidMount() {
     const { gridGap, padding, minItemWidth, items } = this.props
 
