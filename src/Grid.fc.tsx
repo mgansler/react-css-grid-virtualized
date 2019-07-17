@@ -1,9 +1,9 @@
 import * as React from "react"
 import { useEffect, useReducer, useRef } from "react"
-import { range } from "lodash"
 import { Action, GridAction, GridProps, GridState, RenderState } from "./types"
 import { ScrollContainer } from "./ScrollContainer"
 import { isUpdateRequired } from "./isUpdateRequired"
+import { range } from "./utils"
 
 export const GridFc = <T extends {}>({ className, items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0, preload = 0 }: GridProps<T>) => {
   const gridRef = useRef<HTMLDivElement>(null)

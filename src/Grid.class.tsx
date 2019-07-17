@@ -1,8 +1,8 @@
 import React from "react"
 import { GridProps, GridState } from "./types"
 import { ScrollContainer } from "./ScrollContainer"
-import { range } from "lodash"
 import { isUpdateRequired } from "./isUpdateRequired"
+import { range } from "./utils"
 
 export class GridClass<T> extends React.Component<GridProps<T>, GridState> {
   static defaultProps = {

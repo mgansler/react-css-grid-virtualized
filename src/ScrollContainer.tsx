@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Dispatch } from "react"
-import { throttle } from "lodash"
 import { Action, GridAction } from "./types"
+import { throttle } from "./utils"
 
 interface ScrollContainerProps {
   itemCount: number
