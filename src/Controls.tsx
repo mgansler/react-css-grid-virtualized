@@ -1,13 +1,13 @@
 import * as React from "react"
 import { ChangeEvent, useCallback, useState } from "react"
-import { GridFc } from "./Grid.fc"
-import { Item, ItemProps } from "./Item"
+import { Kitten, KittenProps } from "./Kitten"
 import "./controls.css"
+import { GridClass } from "./Grid.class"
 
 const INITIAL_ITEM_COUNT = 40
 
-export const generateItems = (count: number): ItemProps[] => {
-  const items: ItemProps[] = []
+export const generateItems = (count: number): KittenProps[] => {
+  const items: KittenProps[] = []
   for (let i = 0; i < count; i++) {
     items.push({ width: Math.floor(Math.random() * 600 + 200), height: Math.floor(Math.random() * 400 + 200) })
   }
@@ -15,7 +15,7 @@ export const generateItems = (count: number): ItemProps[] => {
 }
 
 export const Controls: React.FC = () => {
-  const [items, setItems] = useState<ItemProps[]>(generateItems(INITIAL_ITEM_COUNT))
+  const [items, setItems] = useState<KittenProps[]>(generateItems(INITIAL_ITEM_COUNT))
   const [padding, setPadding] = useState<number>(5)
   const [gap, setGap] = useState<number>(10)
   const [isSquare, setIsSquare] = useState<boolean>(false)
@@ -62,9 +62,9 @@ export const Controls: React.FC = () => {
              onChange={handleUpdateIsSquare}/>
 
     </div>
-    <GridFc<ItemProps>
+    <GridClass<KittenProps>
       className={isSquare ? "square" : undefined}
-      Item={Item}
+      Item={Kitten}
       items={items}
       padding={padding}
       preload={preload}

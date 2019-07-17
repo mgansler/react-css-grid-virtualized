@@ -2,12 +2,12 @@ import * as React from "react"
 import "./item.css"
 import { GridPosition } from "./types"
 
-export interface ItemProps {
+export interface KittenProps {
   width: number
   height: number
 }
 
-export const Item: React.FC<ItemProps & GridPosition> = ({ width, height, gridColumnStart, gridRowStart }) => {
+export const Kitten: React.FC<KittenProps & GridPosition> = ({ width, height, gridColumnStart, gridRowStart }) => {
   return <div
     className={"item"}
     style={{
