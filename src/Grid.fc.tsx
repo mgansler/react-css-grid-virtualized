@@ -3,9 +3,31 @@ import { useEffect, useReducer, useRef } from "react"
 import { Action, GridAction, GridProps, GridState, RenderState } from "./types"
 import { ScrollContainer } from "./ScrollContainer"
 import { isUpdateRequired } from "./isUpdateRequired"
-import { range } from "./utils"
+import { isPositiveNumber, isPositiveNumberOrZero, range } from "./utils"
 
-export const GridFc = <T extends {}>({ className, items, Item, minItemWidth = 400, minItemHeight = 400, gridGap = 0, padding = 0, preload = 0 }: GridProps<T>) => {
+export const GridFc = <T extends {}>({ className, items, Item, minItemWidth = 1, minItemHeight = 1, gridGap = 0, padding = 0, preload = 0 }: GridProps<T>) => {
+  if (!isPositiveNumber(minItemWidth)) {
+    throw new Error("minItemWidth must be a positive number")
+  }
+
+  if (!isPositiveNumber(minItemHeight)) {
+    throw new Error("minItemHeight must be a positive number")
+  }
+
+  if (!isPositiveNumberOrZero(preload)) {
+    throw new Error("preload must be at least zero")
+  }
+
+  if (!isPositiveNumberOrZero(padding)) {
+    console.warn(`padding of ${padding} is an invalid value, using 0 instead`)
+    padding = 0
+  }
+
+  if (!isPositiveNumberOrZero(gridGap)) {
+    console.warn(`gridGap of ${gridGap} is an invalid value, using 0 instead`)
+    gridGap = 0
+  }
+
   const gridRef = useRef<HTMLDivElement>(null)
   const renderState = useRef<RenderState>(RenderState.Initial)
 
@@ -27,12 +49,15 @@ export const GridFc = <T extends {}>({ className, items, Item, minItemWidth = 40
     const { parentElement, scrollHeight } = gridRef.current!
 
     // Our row height is the height of an item plus a grid gap
+    // scrollHeight is from last render so we need to use row count from last render too
     const rowHeightWithGap = ((scrollHeight + gridGap - 2 * padding) / state.rows)
+
+    // console.log(scrollHeight, rowHeightWithGap)
 
     // For the first visible row we are interested when the lower boundary of an item enters/leaves the screen.
     let firstVisibleRow = Math.max(Math.floor((parentElement!.scrollTop + gridGap - padding) / rowHeightWithGap - preload), 0)
     // For the last visible row we are interested when the upper boundary of an item enters/leaves the screen.
-    const lastVisibleRow = Math.floor((parentElement!.scrollTop + parentElement!.getBoundingClientRect().height - padding) / rowHeightWithGap + preload)
+    const lastVisibleRow = Math.floor((parentElement!.scrollTop + parentElement!.getBoundingClientRect().height - padding - 1) / rowHeightWithGap + preload)
 
     // If only a single row fit's the screen we also render the row above
     // to avoid jumping that might occur when the last (total) row contains fewer items that would fit.
@@ -87,6 +112,8 @@ export const GridFc = <T extends {}>({ className, items, Item, minItemWidth = 40
       window.removeEventListener(Action.Resize, dispatchGridState as EventListener)
     }
   }, [])
+
+  // console.warn("render", gridState, padding)
 
   return (
     <ScrollContainer itemCount={items.length} onScroll={dispatchGridState}>

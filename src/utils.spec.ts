@@ -1,4 +1,5 @@
-import { range, throttle } from "./utils"
+import { isPositiveNumber, isPositiveNumberOrZero, range, throttle } from "./utils"
+import { sleep } from "./testUtils"
 
 describe("range", () => {
   test.each`
@@ -14,8 +15,6 @@ describe("range", () => {
 })
 
 describe("throttle", () => {
-  const sleep = (delay: number) => new Promise(resolve => setTimeout(resolve, delay))
-
   let mockFn: jest.Mock
   let throttled: Function
 
@@ -59,8 +58,44 @@ describe("throttle", () => {
     await sleep(200)
 
     expect(mockFn).toHaveBeenCalledTimes(2)
-    
+
     expect(mockFn.mock.calls[0][0]).toBe(3)
     expect(mockFn.mock.calls[1][0]).toBe(5)
+  })
+})
+
+describe("isPositiveNumber", () => {
+  test.each`
+    number | expected
+    ${-1}        | ${false}
+    ${0}         | ${false}
+    ${NaN}       | ${false}
+    ${Infinity}  | ${false}
+    ${-Infinity} | ${false}
+    ${1}         | ${true}
+    ${0.1}       | ${true}
+    ${Math.E}    | ${true}
+    ${Math.PI}   | ${true}
+    
+  `("should return $expected for $number", ({ number, expected }) => {
+    expect(isPositiveNumber(number)).toBe(expected)
+  })
+})
+
+describe("isPositiveNumberOrZero", () => {
+  test.each`
+    number | expected
+    ${-1}        | ${false}
+    ${0}         | ${true}
+    ${NaN}       | ${false}
+    ${Infinity}  | ${false}
+    ${-Infinity} | ${false}
+    ${1}         | ${true}
+    ${0.1}       | ${true}
+    ${Math.E}    | ${true}
+    ${Math.PI}   | ${true}
+    
+  `("should return $expected for $number", ({ number, expected }) => {
+    expect(isPositiveNumberOrZero(number)).toBe(expected)
   })
 })

@@ -24,3 +24,7 @@ export const throttle = (func: (...args: any[]) => void, intervalLength: number)
     handle = window.setTimeout(func, timeout, ...args)
   }
 }
+
+export const isPositiveNumber = (number: number) => (isFinite(number) && number > 0)
+
+export const isPositiveNumberOrZero = (number: number) => (isFinite(number) && number >= 0)

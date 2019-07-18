@@ -10,8 +10,8 @@ export interface GridProps<T> {
   gridGap?: number
   Item: React.FC<T & GridPosition>
   items: T[]
-  minItemHeight?: number
-  minItemWidth?: number
+  minItemHeight: number
+  minItemWidth: number
   padding?: number
   preload?: number
 }
