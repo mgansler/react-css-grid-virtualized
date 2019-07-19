@@ -197,19 +197,19 @@ describe("props validation", () => {
 
   it("should fail to render given an invalid minItemWidth", () => {
     expect(() => {
-      GridFc({ minItemWidth: 0 })
+      GridFc({ items: [], Item: MockItem, minItemHeight: 1, minItemWidth: 0 })
     }).toThrow("minItemWidth must be a positive number")
   })
 
   it("should fail to render given an invalid minItemHeight", () => {
     expect(() => {
-      GridFc({ minItemHeight: 0 })
+      GridFc({ items: [], Item: MockItem, minItemHeight: 0, minItemWidth: 1 })
     }).toThrow("minItemHeight must be a positive number")
   })
 
   it("should fail to render given an invalid preload", () => {
     expect(() => {
-      GridFc({ preload: -1 })
+      GridFc({ items: [], Item: MockItem, minItemHeight: 1, minItemWidth: 1, preload: -1 })
     }).toThrow("preload must be at least zero")
   })
 
