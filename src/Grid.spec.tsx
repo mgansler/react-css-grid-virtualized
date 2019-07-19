@@ -1,7 +1,7 @@
 import * as React from "react"
-import { GridFc } from "./Grid.fc"
-import { GridPosition, GridProps } from "./types"
 import ReactDOM from "react-dom"
+import { Grid } from "./Grid"
+import { GridPosition, GridProps } from "./types"
 import { sleep } from "./testUtils"
 
 interface MockItemProps {
@@ -33,7 +33,7 @@ interface ContainerOptions {
 
 const renderGrid = ({ items = mockItems, Item = MockItem, minItemHeight = 250, minItemWidth = 250, scrollContainerHeight = 500, scrollContainerWidth = 500, scrollTop = 0, gridHeight = 1250, gridWidth = 500, padding = 0, gridGap = 0, preload = 0 }: Partial<GridProps<MockItemProps> & ContainerOptions>) => {
   ReactDOM.render(
-    <GridFc<MockItemProps>
+    <Grid<MockItemProps>
       items={items}
       Item={Item}
       minItemHeight={minItemHeight}
@@ -197,19 +197,19 @@ describe("props validation", () => {
 
   it("should fail to render given an invalid minItemWidth", () => {
     expect(() => {
-      GridFc({ items: [], Item: MockItem, minItemHeight: 1, minItemWidth: 0 })
+      Grid({ items: [], Item: MockItem, minItemHeight: 1, minItemWidth: 0 })
     }).toThrow("minItemWidth must be a positive number")
   })
 
   it("should fail to render given an invalid minItemHeight", () => {
     expect(() => {
-      GridFc({ items: [], Item: MockItem, minItemHeight: 0, minItemWidth: 1 })
+      Grid({ items: [], Item: MockItem, minItemHeight: 0, minItemWidth: 1 })
     }).toThrow("minItemHeight must be a positive number")
   })
 
   it("should fail to render given an invalid preload", () => {
     expect(() => {
-      GridFc({ items: [], Item: MockItem, minItemHeight: 1, minItemWidth: 1, preload: -1 })
+      Grid({ items: [], Item: MockItem, minItemHeight: 1, minItemWidth: 1, preload: -1 })
     }).toThrow("preload must be at least zero")
   })
 

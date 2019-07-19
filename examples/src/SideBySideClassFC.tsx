@@ -1,5 +1,5 @@
 import { generateItems } from "./Controls"
-import { GridFc } from "./Grid.fc"
+import { Grid } from "../../src/Grid"
 import { Kitten } from "./Kitten"
 import * as React from "react"
 import "./sidebyside.css"
@@ -23,7 +23,7 @@ export const SideBySideClassFC: React.FC = () => {
     </div>
     <div className={"column right"}>
       <span className={"header"}>Functional Component</span>
-      <GridFc
+      <Grid
         Item={Kitten}
         items={items}
         gridGap={10}

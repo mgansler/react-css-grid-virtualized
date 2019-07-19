@@ -2,10 +2,9 @@ import * as React from "react"
 import { useEffect, useReducer, useRef } from "react"
 import { Action, GridAction, GridProps, GridState, RenderState } from "./types"
 import { ScrollContainer } from "./ScrollContainer"
-import { isUpdateRequired } from "./isUpdateRequired"
-import { isPositiveNumber, isPositiveNumberOrZero, range } from "./utils"
+import { isPositiveNumber, isPositiveNumberOrZero, isUpdateRequired, range } from "./utils"
 
-export const GridFc = <T extends {}>({ className, items, Item, minItemWidth, minItemHeight, gridGap = 0, padding = 0, preload = 0 }: GridProps<T>) => {
+export const Grid = <T extends {}>({ className, items, Item, minItemWidth, minItemHeight, gridGap = 0, padding = 0, preload = 0 }: GridProps<T>) => {
   if (!isPositiveNumber(minItemWidth)) {
     throw new Error("minItemWidth must be a positive number")
   }

@@ -1,4 +1,4 @@
-import { isPositiveNumber, isPositiveNumberOrZero, range, throttle } from "./utils"
+import { isPositiveNumber, isPositiveNumberOrZero, range, throttle } from "../src/utils"
 import { sleep } from "./testUtils"
 
 describe("range", () => {

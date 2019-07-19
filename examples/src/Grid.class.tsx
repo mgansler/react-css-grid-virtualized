@@ -1,8 +1,8 @@
 import React from "react"
-import { Action, GridProps, GridState } from "./types"
-import { ScrollContainer } from "./ScrollContainer"
-import { isUpdateRequired } from "./isUpdateRequired"
-import { range } from "./utils"
+import { Action, GridProps, GridState } from "../../src/types"
+import { range } from "../../src/utils"
+import { isUpdateRequired } from "react-virtualized-css-grid/utils"
+import { ScrollContainer } from "react-virtualized-css-grid/ScrollContainer"
 
 export class GridClass<T> extends React.Component<GridProps<T>, GridState> {
   static defaultProps = {

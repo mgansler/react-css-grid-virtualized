@@ -2,7 +2,7 @@ import * as React from "react"
 import { ChangeEvent, useCallback, useState } from "react"
 import { Kitten, KittenProps } from "./Kitten"
 import "./controls.css"
-import { GridFc } from "./Grid.fc"
+import { Grid } from "react-virtualized-css-grid"
 
 const INITIAL_ITEM_COUNT = 40
 
@@ -62,7 +62,7 @@ export const Controls: React.FC = () => {
              onChange={handleUpdateIsSquare}/>
 
     </div>
-    <GridFc<KittenProps>
+    <Grid<KittenProps>
       className={isSquare ? "square" : undefined}
       Item={Kitten}
       items={items}
