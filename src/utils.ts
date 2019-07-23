@@ -1,4 +1,4 @@
-import { GridState } from "./types"
+import { GridState } from "./Grid"
 
 // Compares the first and last element of the given arrays
 const areVisibleItemsEqual = (lastVisibleItems: number[], newVisibleItems: number[]) => {

@@ -1,8 +1,46 @@
 import * as React from "react"
 import { useEffect, useReducer, useRef } from "react"
-import { Action, GridAction, GridProps, GridState, RenderState } from "./types"
-import { ScrollContainer } from "./ScrollContainer"
-import { isPositiveNumber, isPositiveNumberOrZero, isUpdateRequired, range } from "./utils"
+import { isPositiveNumber, isPositiveNumberOrZero, isUpdateRequired, range, throttle } from "./utils"
+
+export interface GridPosition {
+  gridRowStart: number
+  gridColumnStart: number
+}
+
+export interface GridProps<T> {
+  className?: string
+  gridGap?: number
+  Item: React.FC<T & GridPosition>
+  items: T[]
+  minItemHeight: number
+  minItemWidth: number
+  padding?: number
+  preload?: number
+}
+
+export interface GridState {
+  visibleItems: number[]
+  rows: number
+  columns: number
+}
+
+enum RenderState {
+  Initial,
+  SingleRow,
+  Continuous,
+}
+
+enum Action {
+  Initial = "initial",
+  Secondary = "secondary",
+  PropsUpdate = "props updated",
+  Resize = "resize",
+  Scroll = "scroll",
+}
+
+interface GridAction {
+  type: Action
+}
 
 export const Grid = <T extends {}>({ className, items, Item, minItemWidth, minItemHeight, gridGap = 0, padding = 0, preload = 0 }: GridProps<T>) => {
   if (!isPositiveNumber(minItemWidth)) {
@@ -50,8 +88,6 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth, minIt
     // Our row height is the height of an item plus a grid gap
     // scrollHeight is from last render so we need to use row count from last render too
     const rowHeightWithGap = ((scrollHeight + gridGap - 2 * padding) / state.rows)
-
-    // console.log(scrollHeight, rowHeightWithGap)
 
     // For the first visible row we are interested when the lower boundary of an item enters/leaves the screen.
     let firstVisibleRow = Math.max(Math.floor((parentElement!.scrollTop + gridGap - padding) / rowHeightWithGap - preload), 0)
@@ -112,10 +148,10 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth, minIt
     }
   }, [])
 
-  // console.warn("render", gridState, padding)
-
   return (
-    <ScrollContainer itemCount={items.length} onScroll={dispatchGridState}>
+    <div style={{ overflowY: items.length > 0 ? "scroll" : "hidden", height: "100%" }}
+         onScroll={throttle(() => dispatchGridState({ type: Action.Scroll }), 100)}
+    >
       <div
         ref={gridRef}
         className={className}
@@ -134,6 +170,6 @@ export const Grid = <T extends {}>({ className, items, Item, minItemWidth, minIt
           gridRowStart={1 + Math.floor(id / gridState.columns)}
         /> : null)}
       </ div>
-    </ ScrollContainer>
+    </ div>
   )
 }

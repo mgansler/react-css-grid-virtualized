@@ -1,7 +1,6 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
-import { Grid } from "./Grid"
-import { GridPosition, GridProps } from "./types"
+import { Grid, GridPosition } from "./Grid"
 import { sleep } from "./testUtils"
 
 interface MockItemProps {

@@ -1,2 +1,2 @@
-export { Grid } from "./Grid"
-export { GridPosition } from "./types"
+export { Grid as default } from "./Grid"
+export { GridPosition } from "./Grid"
