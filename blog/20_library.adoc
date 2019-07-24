@@ -1,0 +1,9 @@
+## Virtualization with CSS Grid (and React) - Part 3
+
+### (optional) Library
+
+### Testing
+
+? Responsiveness
+? Dynamic item sizes
+? Optimization
