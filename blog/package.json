@@ -2,10 +2,6 @@
   "name": "react-virtualized-css-grid",
   "version": "0.1.0",
   "private": true,
-  "peerDependencies": {
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6"
-  },
   "dependencies": {
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
@@ -19,16 +15,24 @@
     "typescript": "3.5.2"
   },
   "scripts": {
-    "build": "tsc --module commonjs --jsx react --allowJs false --isolatedModules false --noEmit false",
-    "test": "react-scripts test"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"
   },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**",
-      "!src/testUtils.ts"
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
     ]
   }
 }
