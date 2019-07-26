@@ -1,7 +1,6 @@
 {
   "name": "react-virtualized-css-grid",
   "version": "0.1.0",
-  "private": true,
   "main": "build/index.js",
   "files": [
     "build/*"
