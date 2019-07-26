@@ -1,5 +1,5 @@
 {
-  "name": "react-virtualized-css-grid",
+  "name": "react-css-grid-virtualized",
   "version": "0.1.0",
   "license": "MIT",
   "main": "build/index.js",

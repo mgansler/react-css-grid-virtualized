@@ -1,7 +1,7 @@
 import React from "react"
 import { Kitten, KittenProps } from "./Kitten"
-import Grid from "react-virtualized-css-grid"
 import "./examples.css"
+import Grid from "react-css-grid-virtualized"
 
 const INITIAL_KITTEN_COUNT = 40
 

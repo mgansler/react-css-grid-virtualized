@@ -1,17 +1,17 @@
-# React Virtualized CSS Grid
+# React CSS Grid Virtualized
 
 This library is for showing one-dimensional data in a two-dimensional way, at least for now.
 
 ## Quick Start
 
 ```bash
-yarn add react-virtualized-css-grid
+yarn add react-css-grid-virtualized
 ```
 
 Plain JavaScript:
 
 ```javascript
-import Grid from "react-virtualized-css-grid"
+import Grid from "react-css-grid-virtualized"
 
 // `id` is a placeholder for your item props
 function ItemComponent({ gridColumnStart, gridRowStart, id }) {
@@ -30,7 +30,7 @@ function YourComponent() {
 TypeScript:
 
 ```typescript jsx
-import Grid, { GridPosition } from "react-virtualized-css-grid"
+import Grid, { GridPosition } from "react-css-grid-virtualized"
 
 interface ItemProps {
   id: number

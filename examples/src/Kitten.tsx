@@ -1,6 +1,6 @@
 import * as React from "react"
 import "./kitten.css"
-import { GridPosition } from "react-virtualized-css-grid"
+import { GridPosition } from "react-css-grid-virtualized"
 
 export interface KittenProps {
   width: number

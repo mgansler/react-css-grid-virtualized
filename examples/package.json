@@ -6,7 +6,7 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.1",
-    "react-virtualized-css-grid": "file:../build"
+    "react-css-grid-virtualized": "file:../build"
   },
   "devDependencies": {
     "@types/jest": "24.0.15",
