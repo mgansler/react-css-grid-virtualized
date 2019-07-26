@@ -1,7 +1,7 @@
 {
   "name": "react-css-grid-virtualized",
   "description": "A simple library to display one-dimensional data in a two-dimensional layout.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "repository": {
     "type": "git",
