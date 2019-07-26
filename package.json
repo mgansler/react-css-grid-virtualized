@@ -2,6 +2,10 @@
   "name": "react-virtualized-css-grid",
   "version": "0.1.0",
   "private": true,
+  "main": "build/index.js",
+  "files": [
+    "build/*"
+  ],
   "peerDependencies": {
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
