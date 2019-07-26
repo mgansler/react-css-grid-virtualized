@@ -1,5 +1,0 @@
-include::00_introduction.adoc[]
-
-include::10_implementation.adoc[]
-
-include::20_library.adoc[]
