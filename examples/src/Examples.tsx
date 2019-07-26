@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react"
 import { Kitten, KittenProps } from "./Kitten"
 import Grid from "react-virtualized-css-grid"
 import "./examples.css"
@@ -15,20 +15,22 @@ const generateKittens = (count: number): KittenProps[] => {
 
 export const Minimal: React.FC = () => {
   return (
-    <Grid<KittenProps> Item={Kitten} items={generateKittens(INITIAL_KITTEN_COUNT)} minItemHeight={300} minItemWidth={300}/>
-  );
+    <Grid<KittenProps> Item={Kitten} items={generateKittens(INITIAL_KITTEN_COUNT)} minItemHeight={300}
+                       minItemWidth={300}/>
+  )
 }
 
 export const Preload: React.FC = () => {
+  const kittens = generateKittens(INITIAL_KITTEN_COUNT)
   return (
     <div className={"sideBySide"}>
       <div className={"column left"}>
         <span className={"header"}>No Preload</span>
-        <Grid<KittenProps> Item={Kitten} items={generateKittens(INITIAL_KITTEN_COUNT)} minItemHeight={200} minItemWidth={200} preload={0}/>
+        <Grid<KittenProps> Item={Kitten} items={kittens} minItemHeight={200} minItemWidth={200} preload={0}/>
       </div>
       <div className={"column right"}>
         <span className={"header"}>2 Rows Preload</span>
-        <Grid<KittenProps> Item={Kitten} items={generateKittens(INITIAL_KITTEN_COUNT)} minItemHeight={200} minItemWidth={200} preload={2}/>
+        <Grid<KittenProps> Item={Kitten} items={kittens} minItemHeight={200} minItemWidth={200} preload={2}/>
       </div>
     </div>
   )
@@ -36,14 +38,16 @@ export const Preload: React.FC = () => {
 
 export const GapAndPadding: React.FC = () => {
   return (
-    <Grid<KittenProps> Item={Kitten} items={generateKittens(INITIAL_KITTEN_COUNT)} minItemHeight={300} minItemWidth={300} gridGap={10} padding={5}/>
-  );
+    <Grid<KittenProps> Item={Kitten} items={generateKittens(INITIAL_KITTEN_COUNT)} minItemHeight={300}
+                       minItemWidth={300} gridGap={10} padding={5}/>
+  )
 }
 
 export const SquareItems: React.FC = () => {
   return (
-    <Grid<KittenProps> Item={Kitten} items={generateKittens(INITIAL_KITTEN_COUNT)} minItemHeight={300} minItemWidth={300} className={"squared"}/>
-  );
+    <Grid<KittenProps> Item={Kitten} items={generateKittens(INITIAL_KITTEN_COUNT)} minItemHeight={300}
+                       minItemWidth={300} className={"squared"}/>
+  )
 }
 
 export const Controlled: React.FC = () => {
