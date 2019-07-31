@@ -1,4 +1,4 @@
-## Virtualization with CSS Grid (and React) - Part 1
+## Virtualization with CSS Grid (and React) - Part 1: Introduction
 
 ### Concepts of Virtualization
 
@@ -64,7 +64,8 @@ This calculation needs to be repeated vor every item and for every scroll positi
 Depending on the amount of visible items this can cause a high load, especially on older devices.
 
 Doing it this way isn't necessarily bad as it gives you a lot of flexibility and compatibility across browsers.
-But there is another solution for the positioning problem: CSS Grid.
+But there is another solution for the positioning problem:
+CSS Grid.
 
 ### Introduction to CSS Grid
 
@@ -105,7 +106,8 @@ The CSS would look like this:
 This would yield us a visible area of 1600 x 1000 pixel.
 The grid with 4 column and 10 rows has enough room for 40 items in total.
 All columns would have the same width because of `1fr`: 400 pixel.
-The same is true for the height of the rows: All of an equal height of 400 pixel.
+The same is true for the height of the rows:
+All of an equal height of 400 pixel.
 The `#wrapper` has the same width as the `#scroll_container` of 1600 pixel but a height of 4000 pixel (10 rows at 400 pixel each).
 
 Now, when the user just opened the page only the top 12 items (4 columns and 2.5 rows) would be visible:

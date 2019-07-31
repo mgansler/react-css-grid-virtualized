@@ -1,9 +1,87 @@
-## Virtualization with CSS Grid (and React) - Part 3
+## Virtualization with CSS Grid (and React) - Part 3: Publishing as a library
 
-### (optional) Library
+In this final part of this series we will publish the our implementation as a library on https://npmjs.org.
+
+### Dependencies
+
+The code from the last part only had one dependency: https://lodash.com[`lodash`] for its `range` and `throttle` functions.
+While this works great it is worthwhile to get rid of such dependencies for two reasons:
+
+1. Dependencies make maintaining a project harder.
+One needs to check for vulnerabilities and upgrade to a non-compatible version because of this
+2. They increase the bundle size (React itself does not depend on lodash)
+
+Besides that we only use a very small portion of the `lodash` functionality and it is fun to learn how such libraries work.
+
+#### range
+
+This function generates an array of numbers.
+Lodash `range` supports many use cases we do not need: negative steps, step sizes other than 1.
+We only ever need arrays with consecutive numbers with a given start and end.
+This can be yielded with a simple for loop:
+
+```
+const range = (from: number, to: number): number[] => {
+  let range: number[] = []
+  for (let i = 0; i < to - from; i++) {
+    range[i] = from + i
+  }
+  return range
+}
+```
+
+#### throttle
+
+`throttle` is the more interesting function we need to implement.
+It wraps a function (parameter one) that is then executed at most every x milliseconds (parameter two).
+Again, https://lodash.com/docs/4.17.15#throttle[Lodash's version] handles many more use cases than we would ever need.
+Therefor it has an optional third parameter for `options` for if we want to trigger on the leading or trailing edge.
+
+What we want to handle scrolling as smooth as possible for the user is for our reducer to be called in a certain interval.
+Interval, because capturing the leading edge might result in unexpected behavior.
+For example, when the user stops scrolling while a new row just enters the visible area it might not be rendered because it is not yet visible when the last action is dispatched.
+
+Executing on the trailing edge (with a debounce) only would result in a behavior, when the user is scrolling rapidly, new rows are loaded too late and suddenly pop up when well into the visible area.
+
+So without further due, let's have a look at the code:
+
+```
+const throttle = (func: (...args: any[]) => void, intervalLength: number) => {
+  let intervalBegin = 0
+  let handle: number
+
+  return (...args: any[]) => {
+    let timeout = intervalLength
+    const now = Date.now()
+
+    if (now - intervalBegin > intervalLength) {
+      intervalBegin = now
+    } else {
+      window.clearTimeout(handle)
+      timeout = intervalLength - (now - intervalBegin)
+    }
+
+    handle = window.setTimeout(func, timeout, ...args)
+  }
+}
+```
+
+Every time `throttle` is called, a new context is created.
+That means we can have multiple throttled functions at the same time, all with their own intervall.
+This is important for when our library is used multiple times in the same project.
+
+The function that is returned by `throttle` checks, whether the call is the beginning of a new interval (the user has not scrolled for a while) or if it is in an existing interval.
+In any case, it calculates the remaining time to the end of the interval and uses `window.setTimeout()` to run the provided function after that delay.
+In the case of a call in an interval the old handle is cleared before.
 
 ### Testing
 
-? Responsiveness
-? Dynamic item sizes
-? Optimization
+Nobody will use a library that has no tests, so we need to write some.
+And of course we want to have tests anyway to know when we break things.
+For a simplified setup, we are using https://github.com/facebook/create-react-app#readme[`react-scripts`] for development and testing.
+`react-scripts` comes with a pre-configured https://jestjs.io/en/[`jest`].
+
+### Library
+
+While this takes care of setting up jest for us it makes building the library a bit harder as it overwrites the `tsconfig.json` file every time the tests are run.
+So our `build` line in the `scripts` section looks like this: `"build": "tsc --module commonjs --jsx react --allowJs false --isolatedModules false --noEmit false"`

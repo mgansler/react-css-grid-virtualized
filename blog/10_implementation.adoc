@@ -1,4 +1,4 @@
-## Virtualization with CSS Grid (and React) - Part 2
+## Virtualization with CSS Grid (and React) - Part 2: Implementation
 
 In this part we will look at an actual implementation of last weeks Article in React.
 We will discuss what actions the component needs to respond to.
@@ -8,9 +8,12 @@ We will also have a look at the differences of the component implemented as a tr
 
 A virtualization component needs to react to three different events:
 
-1. `resize`: When the browsers window size changes.
-2. `scroll`: When the user scrolls.
-3. `props` update: Configuration or data is changed from outside the component.
+1. `resize`:
+When the browsers window size changes.
+2. `scroll`:
+When the user scrolls.
+3. `props` update:
+Configuration or data is changed from outside the component.
 
 ### React Lifecycle
 
@@ -258,12 +261,14 @@ This reducer enables the component to transfer state from one render iteration t
 There is also [`useState`](https://reactjs.org/docs/hooks-reference.html#usestate) for simple values like a counter or a boolean.
 In our case, we do complex calculations and return a state with three sub-values (`rows`, `columns` and `visibleItems`).
 
-The `useReducer` hook accepts two arguments: The `reducer` function and the `initial state`.
+The `useReducer` hook accepts two arguments:
+The `reducer` function and the `initial state`.
 The `reducer` function itself accepts two arguments as well: `current state` and an `action`.
 
 To quote the React Docs:
 
-> An alternative to useState. Accepts a reducer of type (state, action) => newState, and returns the current state paired with a dispatch method.
+> An alternative to useState.
+Accepts a reducer of type (state, action) => newState, and returns the current state paired with a dispatch method.
 > **(If you’re familiar with Redux, you already know how this works.)**
 
 ##### Types
@@ -298,7 +303,8 @@ The `Action` and `GridAction` could be simplified as we never use a payload in o
 
 ##### Reducer
 
-The reducer looks complicated but basically does two things: Calculate how many columns and rows are needed in total and which items are currently visible.
+The reducer looks complicated but basically does two things:
+Calculate how many columns and rows are needed in total and which items are currently visible.
 
 ```typescript jsx
 function reduceGridState(state: GridState, action: GridAction): GridState {
@@ -364,7 +370,7 @@ It calculates the number of columns and rows required in total for the Grid and 
 An effect is a method that is called *after* a component has been rendered.
 We use three different effects in our component:
 
-1.  Dispatch the correct actions after the initial and secondary render iteration:
+1. Dispatch the correct actions after the initial and secondary render iteration:
 
     ```typescript jsx
     useEffect(() => {
@@ -383,7 +389,7 @@ We use three different effects in our component:
     Because this effect has no dependencies (second optional parameter, see below) it will be called after every render.
     But it will only dispatch an action after the first and second render.
 
-2.  Dispatch an update action after the props of the component have changed
+2. Dispatch an update action after the props of the component have changed
 
     ```typescript jsx
     useEffect(() => {
@@ -396,7 +402,7 @@ We use three different effects in our component:
     This effect has dependencies on all props of the component and will be called when any changes,
     resulting in a change of the gridState when necessary.
 
-3.  Register an event listener for browser window resize.
+3. Register an event listener for browser window resize.
 
     ```typescript jsx
     useEffect(() => {
